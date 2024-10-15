@@ -44,3 +44,15 @@ components:
         position:
           type: string
           description: posizione principale dell'evento
+    EventQuery:
+      required:
+        - eventList
+        - user
+      type: object
+      properties:
+        eventList:
+          type: object
+          description: lista degli eventi risultati da una query
+        user:
+          type: string
+          description: l'utente a cui è associata la query
