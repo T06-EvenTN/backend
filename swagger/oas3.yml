@@ -10,3 +10,37 @@ paths:
       responses:
         '200':
           description: OK
+components:
+  schemas:
+    User:
+      required:
+        - id
+        - email
+      type: object
+      properties:
+        id:
+          type: string
+          description: id del singolo utente
+        email:
+          type: string
+          description: email del singolo utente
+    Event:
+      required:
+        - title
+        - startDate
+        - eventLength
+        - position
+      type: object
+      properties:
+        title:
+          type: string
+          description: nome dell'evento
+        startDate:
+          type: object
+          description: data di inizio dell'evento
+        eventLength:
+          type: integer
+          description: durate dell'evento espresso come offset in minuti
+        position:
+          type: string
+          description: posizione principale dell'evento
