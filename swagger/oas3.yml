@@ -2,28 +2,166 @@ openapi: '3.0.3'
 info:
   title: EventAPI
   version: '0.0.1'
+  description: 'API per il progetto di ingengeria del software'
 servers:
   - url: https://api.server.test/v1
+  - url: https://e8943f58-728b-49a9-bb89-4829e598eff2.mock.pstmn.io
 paths:
   /test:
     get:
       responses:
         '200':
           description: OK
+  /user/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: l'user che corrisponde all'ID inserito
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: cancella in modo permanente un utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user:
+    post:
+      summary: Aggiunge un nuovo utente
+      requestBody:
+        $ref: "#/components/schemas/User"
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: Lista di tutti gli amici di un utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendList"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Aggiunge un amico alla lista degli amici
+      requestBody:
+        $ref: "#/components/schemas/UserID"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   schemas:
+    UserID:
+      type: string
+      description: l'identificatore univoco di ogni utente
     User:
       required:
         - id
         - email
+        - userType
       type: object
       properties:
         id:
-          type: string
+          $ref: "#/components/schemas/UserID"
           description: id del singolo utente
         email:
           type: string
           description: email del singolo utente
+        userType:
+          type: string
+          enum:
+            - admin
+            - comune
+            - user
+          description: tipo (e di conseguenza livello di accesso) del singolo utente
     Event:
       required:
         - title
@@ -44,15 +182,21 @@ components:
         position:
           type: string
           description: posizione principale dell'evento
-    EventQuery:
+    FriendList:
+      type: array
+      items: 
+        $ref: "#/components/schemas/User"
+    EventList:
+      type: array
+      items: 
+        $ref: "#/components/schemas/Event"
+    Error:
       required:
-        - eventList
-        - user
+        - message
       type: object
       properties:
-        eventList:
-          type: object
-          description: lista degli eventi risultati da una query
-        user:
+        message:
           type: string
-          description: l'utente a cui è associata la query
+          description: un errore di tipo generico in caso di problematiche di comunicazione client server
+
+  
