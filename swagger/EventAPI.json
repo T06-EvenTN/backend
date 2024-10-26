@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "2a131ec7-2a42-40f0-a27d-890557c24636",
+		"name": "EventAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "39048079-2a131ec7-2a42-40f0-a27d-890557c24636"
+	},
+	"item": [
+		{
+			"name": "test",
+			"item": [
+				{
+					"name": "/test",
+					"id": "eb91b235-5814-43b9-a361-bb0eabbdef8c",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"test"
+							]
+						}
+					},
+					"response": [
+						{
+							"id": "e93871c0-df91-4497-9e6e-6474e2e420c5",
+							"name": "OK",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/test",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"test"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"body": null
+						}
+					]
+				}
+			],
+			"id": "48fa558a-3787-482b-b69f-68833675c169"
+		}
+	],
+	"variable": [
+		{
+			"id": "96210e2f-27ba-42f2-815a-a0121665db6b",
+			"key": "baseUrl",
+			"value": "https://api.server.test/v1"
+		}
+	]
+}
