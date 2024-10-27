@@ -14,8 +14,7 @@ files[] = {"id":"39048079-2a131ec7-2a42-40f0-a27d-890557c24636","path":"EventAPI
 [config.relations.collections.metaData]
 
 [config.relations.apiDefinition]
-files[] = {"path":"oas3.yml","metaData":{}}
-files[] = {"path":"swagger/oas3.yml","metaData":{}}
+files[] = {"path":"postman/oas3.yml","metaData":{}}
 
 [config.relations.apiDefinition.metaData]
 type = openapi:3
