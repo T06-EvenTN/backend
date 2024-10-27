@@ -4,7 +4,6 @@ info:
   version: '0.0.1'
   description: 'API per il progetto di ingengeria del software'
 servers:
-  - url: https://api.server.test/v1
   - url: https://e8943f58-728b-49a9-bb89-4829e598eff2.mock.pstmn.io
 paths:
   /test:
