@@ -16,8 +16,8 @@ APIRouter.get('', async (req,res) => {
 
 APIRouter.post('', async (req,res) => {
   let user = new User({
-    "username": req.body.email,
-    "email": req.body.username,
+    "username": req.body.username,
+    "email": req.body.password,
     friends: [],
     events: []
   })
