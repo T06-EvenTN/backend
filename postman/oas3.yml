@@ -6,7 +6,7 @@ info:
 servers:
   - url: https://e8943f58-728b-49a9-bb89-4829e598eff2.mock.pstmn.io
 paths:
-  /test:
+  /ping:
     get:
       responses:
         '200':
@@ -48,6 +48,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/{id}/events:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: lista degli eventi a cui partecipa un determinato utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventList"
         '404':
           description: No User Found
           content:
@@ -112,30 +140,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
-      summary: Aggiunge un amico alla lista degli amici
-      requestBody:
-        $ref: "#/components/schemas/UserID"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserID"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
 components:
   schemas:
     UserID:
