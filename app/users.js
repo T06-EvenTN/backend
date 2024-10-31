@@ -12,7 +12,15 @@ APIRouter.get('', async (req,res) => {
     //TODO: actual error handling
 })
 
-//TODO: GET method to get a single user
+APIRouter.get('/:id', async (req,res) => {
+  const {id} = req.params;
+  let user = await User.findById(id);
+  if(user){
+    res.status(200).send(user);
+  } else {
+    res.status(404).send({message: "user not found"});
+  }
+})
 
 APIRouter.post('', async (req,res) => {
   let user = new User({
