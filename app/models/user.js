@@ -7,4 +7,4 @@ module.exports = mongoose.model('User', new Schema({
   email: String,
   friends: [String],
   events: [String]
-}));
+}, {collection: 'dev-users'}));
