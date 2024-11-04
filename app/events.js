@@ -1,6 +1,7 @@
 const express = require('express');
 const APIRouter = express.Router();
 const Event = require('./models/event');
+const mongoose = require('mongoose');
 
 APIRouter.get('', async (req,res) => {
   let events = await Event.find().exec();
@@ -9,7 +10,23 @@ APIRouter.get('', async (req,res) => {
   } else {
     res.status(404).send({message: "no events found"});
   }
-})
+});
+
+APIRouter.get('/:id', async (req,res) => {
+  try{
+    const{ id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      let event = await Event.findById(id);
+      if(event){
+        res.status(200).send(event);
+      } else {
+        res.status(404).send({message: "no events found"});
+      }
+    } else res.status(400).send({message: "invalid ID"});
+  } catch(error){
+    res.status(500).send({message: "internal error"});
+  }
+});
 
 APIRouter.post('', async (req,res) => {
   try{
