@@ -1,6 +1,7 @@
 const express = require('express');
 const APIRouter = express.Router();
 const User = require('./models/user');
+const mongoose = require('mongoose');
 
 APIRouter.get('', async (req,res) => {
     let users = await User.find().exec();
@@ -13,14 +14,20 @@ APIRouter.get('', async (req,res) => {
 })
 
 APIRouter.get('/:id', async (req,res) => {
-  const {id} = req.params;
-  let user = await User.findById(id);
-  if(user){
-    res.status(200).send(user);
-  } else {
-    res.status(404).send({message: "user not found"});
+  try{  
+    const{ id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      let user = await User.findById(id);
+      if(user){
+        res.status(200).send(user);
+      } else {
+        res.status(404).send({message: "no user found"});
+      }
+    } else res.status(400).send({message: "invalid user ID"});
+  } catch(error){
+    res.status(500).send({message: "internal error"});
   }
-})
+});
 
 APIRouter.post('', async (req,res) => {
   let user = new User({
