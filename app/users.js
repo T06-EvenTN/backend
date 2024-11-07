@@ -2,6 +2,7 @@ const express = require('express');
 const APIRouter = express.Router();
 const User = require('./models/user');
 const mongoose = require('mongoose');
+const bcrypt = require ('bcrypt');
 
 
 //get all users in users db
@@ -34,15 +35,19 @@ APIRouter.get('/:id', async (req,res) => {
 
 //create a new user
 APIRouter.post('', async (req,res) => {
-  let user = new User({
-    "username": req.body.username,
-    "email": req.body.email,
-    friends: [],
-    events: []
-  })
-  user = await user.save();
-  let userid = user.id;
-  res.status(201).send(`created user ${userid}`);
+  try{
+    const hashedPswd = await bcrypt.hash(req.body.password, 10);
+    let user = new User({
+      "username": req.body.username,
+      "email": req.body.email,
+      "password": hashedPswd,
+      friends: [],
+      events: []
+    })
+    user = await user.save();
+    let userid = user.id;
+    res.status(201).send(`created user ${userid}`);
+  } catch(error){}
   //TODO: handle incorrect requests (400) and server errors 
 });
 
