@@ -3,10 +3,12 @@ const APIRouter = express.Router();
 const User = require('./models/user');
 const mongoose = require('mongoose');
 const bcrypt = require ('bcrypt');
+const jwt = require ('jsonwebtoken');
+const tokenVerifier = require('./tokenVerifier');
 
 
 //get all users in users db
-APIRouter.get('', async (req,res) => {
+APIRouter.get('', tokenVerifier, async (req,res) => {
     let users = await User.find().exec();
     if(users){
       res.status(200).send(users);
@@ -61,13 +63,14 @@ APIRouter.post('/login', async (req,res) => {
       res.status(400).send({message: `no user found with username ${req.body.username}`});
     } else {
       if(await bcrypt.compare(req.body.password, user.password)){
-        res.status(200).send({message: "login successful"});
+        const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET);
+        res.status(200).send({message: "login successful", token: accessToken});
       } else {
-        res.status(400).send({mesage: "password is incorrect."});
+        res.status(400).send({message: "password is incorrect."});
       }
     }
   }catch(error){
-    res.status(500).send({message: error});
+    res.status(500).send({message: error.toString()});
   }
 })
 
