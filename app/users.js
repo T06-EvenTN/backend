@@ -47,9 +47,29 @@ APIRouter.post('', async (req,res) => {
     user = await user.save();
     let userid = user.id;
     res.status(201).send(`created user ${userid}`);
-  } catch(error){}
-  //TODO: handle incorrect requests (400) and server errors 
+  } catch(error){
+    res.status(500).send({message: error});
+  }
+  //TODO: handle incorrect requests (400)
 });
+
+//login with email and password
+APIRouter.post('/login', async (req,res) => {
+  try{
+    const user = await User.findOne({username: req.body.username});
+    if(user === null){
+      res.status(400).send({message: `no user found with username ${req.body.username}`});
+    } else {
+      if(await bcrypt.compare(req.body.password, user.password)){
+        res.status(200).send({message: "login successful"});
+      } else {
+        res.status(400).send({mesage: "password is incorrect."});
+      }
+    }
+  }catch(error){
+    res.status(500).send({message: error});
+  }
+})
 
 //delete a user from the db given its id
 APIRouter.delete('/:id', async (req,res) => {
