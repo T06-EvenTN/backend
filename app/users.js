@@ -3,6 +3,8 @@ const APIRouter = express.Router();
 const User = require('./models/user');
 const mongoose = require('mongoose');
 
+
+//get all users in users db
 APIRouter.get('', async (req,res) => {
     let users = await User.find().exec();
     if(users){
@@ -13,6 +15,7 @@ APIRouter.get('', async (req,res) => {
     //TODO: actual error handling
 })
 
+//get a user from its id
 APIRouter.get('/:id', async (req,res) => {
   try{  
     const{ id } = req.params;
@@ -29,6 +32,7 @@ APIRouter.get('/:id', async (req,res) => {
   }
 });
 
+//create a new user
 APIRouter.post('', async (req,res) => {
   let user = new User({
     "username": req.body.username,
@@ -42,6 +46,7 @@ APIRouter.post('', async (req,res) => {
   //TODO: handle incorrect requests (400) and server errors 
 });
 
+//delete a user from the db given its id
 APIRouter.delete('/:id', async (req,res) => {
   try{
     const { id } = req.params;
@@ -50,6 +55,27 @@ APIRouter.delete('/:id', async (req,res) => {
       if(validReq){
         const deletion = await User.findByIdAndDelete(id);
         res.status(200).send(`deleted user ${id}`);
+      } else res.status(404).send({message: "user not found"});
+    } else res.status(400).send({message: "invalid ID"});
+  } catch (error) {
+    res.status(500).send({message: `internal error: ${error}`});
+  }
+});
+
+//replace user info
+APIRouter.put('/:id', async (req,res) => {
+  try{
+    const { id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      const validReq = await User.findById(id);
+      if(validReq){
+        const newUser = req.body.username ?? validReq.username;
+        const newEmail = req.body.email ?? validReq.email;
+        const updateUser = await User.findByIdAndUpdate(id, {
+          "username": newUser,
+          "email": newEmail,
+        });
+        res.status(200).send(`updated  user ${id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
