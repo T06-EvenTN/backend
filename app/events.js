@@ -47,4 +47,35 @@ APIRouter.post('', async (req,res) => {
   });
 
 
+APIRouter.put('/:id', async (req,res) => {
+try{
+  const { id } = req.params;
+  if(mongoose.isValidObjectId(id)){
+    const validReq = await Event.findById(id);
+    if(validReq){
+      const newEventName = req.body.eventName ?? validReq.eventName;
+      const newEventStart = req.body.eventStart ?? validReq.eventStart;
+      const newEventLength = req.body.eventLength ?? validReq.eventLength;
+      const newEventDescription = req.body.eventDescription ?? validReq.eventDescription;
+      let newEventPosition = [];
+      if(!req.body.xcoord || !req.body.ycoord){
+        newEventPosition = validReq.eventPosition;
+      } else newEventPosition = [req.body.xcoord,req.body.ycoord];
+      await Event.findByIdAndUpdate(id, {
+        "eventName": newEventName,
+        "eventStart": newEventStart,
+        "eventLength": newEventLength,
+        "eventDescription": newEventDescription,
+        eventPosition: newEventPosition
+      });
+      res.status(200).send(`updated event ${id}`);
+    } else res.status(404).send({message: "event not found"});
+  } else res.status(400).send({message: "invalid ID"});
+} catch (error) {
+  res.status(500).send({message: `internal error: ${error}`});
+}
+})
+
+
+
 module.exports = APIRouter;
