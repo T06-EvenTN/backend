@@ -8,7 +8,7 @@ const tokenVerifier = require('./tokenVerifier');
 
 
 //get all users in users db
-APIRouter.get('', tokenVerifier, async (req,res) => {
+APIRouter.get('', async (req,res) => {
     let users = await User.find().exec();
     if(users){
       res.status(200).send(users);
@@ -19,7 +19,7 @@ APIRouter.get('', tokenVerifier, async (req,res) => {
 })
 
 //get a user from its id
-APIRouter.get('/:id', async (req,res) => {
+APIRouter.get('/:id', tokenVerifier, async (req,res) => {
   try{  
     const{ id } = req.params;
     if(mongoose.isValidObjectId(id)){
@@ -102,13 +102,13 @@ APIRouter.post('/login', async (req,res) => {
   try{
     const user = await User.findOne({username: req.body.username});
     if(user === null){
-      res.status(400).send({message: `no user found with username ${req.body.username}`});
+      res.status(404).send({message: `no user found with username ${req.body.username}`});
     } else {
       if(await bcrypt.compare(req.body.password, user.password)){
         const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET);
         res.status(200).send({message: "login successful", token: accessToken});
       } else {
-        res.status(400).send({message: "password is incorrect."});
+        res.status(401).send({message: "password is incorrect."});
       }
     }
   }catch(error){
@@ -123,7 +123,7 @@ APIRouter.delete('/:id', async (req,res) => {
     if(mongoose.isValidObjectId(id)){
       const validReq = await User.findById(id);
       if(validReq){
-        const deletion = await User.findByIdAndDelete(id);
+        await User.findByIdAndDelete(id);
         res.status(200).send(`deleted user ${id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
@@ -141,7 +141,7 @@ APIRouter.put('/:id', async (req,res) => {
       if(validReq){
         const newUser = req.body.username ?? validReq.username;
         const newEmail = req.body.email ?? validReq.email;
-        const updateUser = await User.findByIdAndUpdate(id, {
+        await User.findByIdAndUpdate(id, {
           "username": newUser,
           "email": newEmail,
         });

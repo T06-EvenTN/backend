@@ -4,22 +4,28 @@ info:
   version: '0.0.1'
   description: 'API per il progetto di ingengeria del software'
 servers:
-  - url: https://e8943f58-728b-49a9-bb89-4829e598eff2.mock.pstmn.io
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/0.0.1
+  - url: http://localhost:8080
 paths:
-  /ping:
+  /test:
     get:
+      description: test endpoint, verifica che il server possa essere raggiunto
       responses:
         '200':
-          description: OK
-  /user/{id}:
+          description: server raggiungibile
+  /users/{id}:
+    description: l'user che corrisponde all'ID inserito
     parameters:
         - name: id
           in: path
+          description: ID dello user da trovare
           required: true
           schema:
             $ref: "#/components/schemas/UserID" 
     get:
-      summary: l'user che corrisponde all'ID inserito
+      summary: ritorna l'oggetto User corrisondente all'ID inserito
       responses:
         '200':
           description: OK
@@ -29,6 +35,12 @@ paths:
                 $ref: "#/components/schemas/User"
         '404':
           description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '400':
+          description: Invalid UserID
           content:
             application/json:
               schema:
@@ -48,6 +60,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: aggiorna le informazioni di un utente
+      requestBody:
+        description: le informazioni da modificare
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         '404':
           description: No User Found
           content:
@@ -91,8 +143,6 @@ paths:
   /user:
     post:
       summary: Aggiunge un nuovo utente
-      requestBody:
-        $ref: "#/components/schemas/User"
       responses:
         '201':
           description: OK
@@ -100,6 +150,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      summary: effettua il login con username e password
+      requestBody:
+        description: username e password dell'utente
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                  token:
+                    $ref: "#/components/securitySchemes/bearerAuth"
+        '401':
+          description: Password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         '404':
           description: No User Found
           content:
@@ -141,10 +231,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     UserID:
       type: string
       description: l'identificatore univoco di ogni utente
+    Login:
+      required:
+        - username
+        - password
+      type: object
+      properties:
+        username:
+          type: string
+          description: username dell'utente
+        password:
+          type: string
+          description: password in plain text
     User:
       required:
         - id
@@ -154,7 +261,6 @@ components:
       properties:
         id:
           $ref: "#/components/schemas/UserID"
-          description: id del singolo utente
         email:
           type: string
           description: email del singolo utente
@@ -201,5 +307,4 @@ components:
         message:
           type: string
           description: un errore di tipo generico in caso di problematiche di comunicazione client server
-
-  
+security: [bearerAuth: []]
