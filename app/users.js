@@ -35,6 +35,48 @@ APIRouter.get('/:id', async (req,res) => {
   }
 });
 
+//get a user's friends from its id
+APIRouter.get('/friends/:id', async (req,res) => {
+  try{  
+    const{ id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      let user = await User.findById(id);
+      if(user){
+        const friendList = user.friends;
+        if(friendList){
+          res.status(200).send(friendList);
+        } else res.status(404).send({message: "attribute is not present"});
+      } else {
+        res.status(404).send({message: "no user found"});
+      }
+    } else res.status(400).send({message: "invalid user ID"});
+  } catch(error){
+    res.status(500).send({message: "internal error"});
+  }
+});
+
+//add friend to a user
+APIRouter.post('/friends/:id', async (req,res) => {
+  try{
+    const newFriend = req.body.id;
+    if(!newFriend){
+      res.status(400).send({message: "Friend ID is not present."})
+    }
+    const id = req.params;
+    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newFriend)){
+      let user = await User.findById(id);
+      if(user){
+        user.friends.push(newFriend);
+        res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
+      } else res.status(404).send({message: "user not found"});
+    } else res.status(400).send({message: "supplied user or friend ID is not valid"})
+    
+  } catch(error){
+    res.status(500).send({message: error});
+  }
+});
+
+
 //create a new user
 APIRouter.post('', async (req,res) => {
   try{
