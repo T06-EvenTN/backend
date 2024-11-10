@@ -2,8 +2,7 @@ const jwt = require('jsonwebtoken');
 
 function tokenVerifier(req, res, next){
   try{
-    const jwtRequest = req.headers['authorization'];
-    const jwToken = jwtRequest.split(' ')[1];
+    const jwToken = req.cookies.token;
     if(!jwToken){
       res.status(401).send({message: "invalid or absent token"});
     } else {
@@ -16,7 +15,9 @@ function tokenVerifier(req, res, next){
         }
       });
     }
-  } catch(error){}
+  } catch(error){
+    res.clearCookie("token");
+  }
 }
 
 module.exports = tokenVerifier;

@@ -19,7 +19,10 @@ APIRouter.get('', async (req,res) => {
 
 //get a user from its id
 APIRouter.get('/:id', tokenVerifier, async (req,res) => {
-  try{  
+  try{ 
+    if (req.user._id !== req.params.id) {
+      return res.status(403).send('User token mismatch');
+    } 
     const{ id } = req.params;
     if(mongoose.isValidObjectId(id)){
       let user = await User.findById(id);
@@ -98,7 +101,7 @@ APIRouter.post('', async (req,res) => {
   //TODO: handle incorrect requests (400)
 });
 
-//login with email and password
+//login with username and password
 APIRouter.post('/login', async (req,res) => {
   try{
     const user = await User.findOne({username: req.body.username});
@@ -106,8 +109,9 @@ APIRouter.post('/login', async (req,res) => {
       res.status(404).send({message: `no user found with username ${req.body.username}`});
     } else {
       if(await bcrypt.compare(req.body.password, user.password)){
-        const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET);
-        res.status(200).send({message: "login successful", token: accessToken});
+        const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
+        res.cookie('token', accessToken);
+        res.status(200).send({message: `logged in as ${req.body.username}`});
       } else {
         res.status(401).send({message: "password is incorrect."});
       }
