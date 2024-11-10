@@ -15,7 +15,6 @@ APIRouter.get('', async (req,res) => {
     } else {
       res.status(500).send({message: 'no user found'});
     }
-    //TODO: actual error handling
 })
 
 //get a user from its id
@@ -62,11 +61,13 @@ APIRouter.post('/friends/:id', async (req,res) => {
     if(!newFriend){
       res.status(400).send({message: "Friend ID is not present."})
     }
-    const id = req.params;
+    const {id} = req.params;
     if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newFriend)){
       let user = await User.findById(id);
       if(user){
-        user.friends.push(newFriend);
+        let friendList = user.friends;
+        friendList.push(newFriend);
+        await User.findByIdAndUpdate(id, {friends: friendList});
         res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "supplied user or friend ID is not valid"})
