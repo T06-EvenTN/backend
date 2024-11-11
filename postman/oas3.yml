@@ -11,21 +11,23 @@ servers:
 paths:
   /test:
     get:
-      description: test endpoint, verifica che il server possa essere raggiunto
+      description: test endpoint, checks if the server is up
       responses:
         '200':
-          description: server raggiungibile
+          description: server is up
+          content:
+            application/json:
+              schema:
+                type: string
   /user:
     get:
       summary: Returns all of the users with an account
       responses:
-        '200'
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
                  $ref: "#/components/schemas/User"
         '404':
           description: No User Found
@@ -40,7 +42,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     post:
-      summary: Aggiunge un nuovo utente
+      summary: Adds a new user
       responses:
         '201':
           description: OK
@@ -62,9 +64,9 @@ paths:
                 $ref: "#/components/schemas/Error"
   /user/login:
     post:
-      summary: effettua il login con username e password
+      summary: logs in the user via username and password
       requestBody:
-        description: username e password dell'utente
+        description: username and password of the user
         required: true
         content:
           application/json:
@@ -76,12 +78,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                  token:
-                    $ref: "#/components/securitySchemes/bearerAuth"
+                type: string
         '401':
           description: Password is incorrect
           content:
@@ -101,16 +98,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
   /users/{id}:
-    description: l'user che corrisponde all'ID inserito
+    description: returns the user object that corresponds to the supplied ID
     parameters:
         - name: id
           in: path
-          description: ID dello user da trovare
+          description: ID of the user to search
           required: true
           schema:
             $ref: "#/components/schemas/UserID" 
     get:
-      summary: ritorna l'oggetto User corrisondente all'ID inserito
+      summary: returns the user object which matches the supplied ID
       responses:
         '200':
           description: OK
@@ -137,7 +134,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     delete:
-      summary: cancella in modo permanente un utente
+      summary: deletes a user permanently
       responses:
         '200':
           description: OK
@@ -164,9 +161,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
     put:
-      summary: aggiorna le informazioni di un utente
+      summary: updates a user's information
       requestBody:
-        description: le informazioni da modificare
+        description: the informations to update
         required: false
         content:
           application/json:
@@ -205,7 +202,7 @@ paths:
           schema:
             $ref: "#/components/schemas/UserID" 
     get:
-      summary: Lista di tutti gli amici di un utente
+      summary: The list of friends of a given user
       responses:
         '200':
           description: OK
@@ -269,14 +266,12 @@ paths:
     get:
       summary: Returns all of the events in the database
       responses:
-        '200'
+        '200':
           description: OK
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  $ref: "#/components/schemas/Event"
+                  $ref: "#/components/schemas/EventList"
         '404':
           description: No User Found
           content:
@@ -357,40 +352,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  put:
-    summary: updates an event's information
-    requestBody:
-      description: the new event info
-      required: false
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/Event"
-    responses:
-      '200':
-        description: OK
+    put:
+      summary: updates an event's information
+      requestBody:
+        description: the new event info
+        required: false
         content:
           application/json:
             schema:
-              type: string
-      '400':
-        description: Provided ID isn't valid
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Error"
-      '404':
-        description: No Event Found
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Error"
-      '500':
-        description: Server Error
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Error"
+              $ref: "#/components/schemas/Event"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No Event Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
@@ -400,7 +395,7 @@ components:
   schemas:
     UserID:
       type: string
-      description: l'identificatore univoco di ogni utente
+      description: the unique identifier of every user
     Login:
       required:
         - username
@@ -409,7 +404,7 @@ components:
       properties:
         username:
           type: string
-          description: username dell'utente
+          description: username of the user
         password:
           type: string
           description: password in plain text
@@ -417,21 +412,14 @@ components:
       required:
         - id
         - email
-        - userType
+        - password
       type: object
       properties:
         id:
           $ref: "#/components/schemas/UserID"
         email:
           type: string
-          description: email del singolo utente
-        userType:
-          type: string
-          enum:
-            - admin
-            - comune
-            - user
-          description: tipo (e di conseguenza livello di accesso) del singolo utente
+          description: email address of the user
     Event:
       required:
         - title
@@ -442,16 +430,18 @@ components:
       properties:
         title:
           type: string
-          description: nome dell'evento
+          description: name of the event
         startDate:
           type: object
-          description: data di inizio dell'evento
+          description: event start date
         eventLength:
           type: integer
-          description: durate dell'evento espresso come offset in minuti
+          description: event length specified as time offset from the start
         position:
-          type: string
-          description: posizione principale dell'evento
+          type: array
+          items:
+            type: float
+          description: main position of the event, given as an array of floats
     FriendList:
       type: array
       items: 
@@ -467,5 +457,5 @@ components:
       properties:
         message:
           type: string
-          description: un errore di tipo generico in caso di problematiche di comunicazione client server
+          description: a generic error given in non-200 type requests. logs the error message.
 security: [bearerAuth: []]
