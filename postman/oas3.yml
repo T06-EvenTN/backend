@@ -1,0 +1,310 @@
+openapi: '3.0.3'
+info:
+  title: EventAPI
+  version: '0.0.1'
+  description: 'API per il progetto di ingengeria del software'
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/0.0.1
+  - url: http://localhost:8080
+paths:
+  /test:
+    get:
+      description: test endpoint, verifica che il server possa essere raggiunto
+      responses:
+        '200':
+          description: server raggiungibile
+  /users/{id}:
+    description: l'user che corrisponde all'ID inserito
+    parameters:
+        - name: id
+          in: path
+          description: ID dello user da trovare
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: ritorna l'oggetto User corrisondente all'ID inserito
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '400':
+          description: Invalid UserID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: cancella in modo permanente un utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: aggiorna le informazioni di un utente
+      requestBody:
+        description: le informazioni da modificare
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/{id}/events:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: lista degli eventi a cui partecipa un determinato utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventList"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user:
+    post:
+      summary: Aggiunge un nuovo utente
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /login:
+    post:
+      summary: effettua il login con username e password
+      requestBody:
+        description: username e password dell'utente
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                  token:
+                    $ref: "#/components/securitySchemes/bearerAuth"
+        '401':
+          description: Password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /friends/{id}:
+    parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/UserID" 
+    get:
+      summary: Lista di tutti gli amici di un utente
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FriendList"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UserID:
+      type: string
+      description: l'identificatore univoco di ogni utente
+    Login:
+      required:
+        - username
+        - password
+      type: object
+      properties:
+        username:
+          type: string
+          description: username dell'utente
+        password:
+          type: string
+          description: password in plain text
+    User:
+      required:
+        - id
+        - email
+        - userType
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/UserID"
+        email:
+          type: string
+          description: email del singolo utente
+        userType:
+          type: string
+          enum:
+            - admin
+            - comune
+            - user
+          description: tipo (e di conseguenza livello di accesso) del singolo utente
+    Event:
+      required:
+        - title
+        - startDate
+        - eventLength
+        - position
+      type: object
+      properties:
+        title:
+          type: string
+          description: nome dell'evento
+        startDate:
+          type: object
+          description: data di inizio dell'evento
+        eventLength:
+          type: integer
+          description: durate dell'evento espresso come offset in minuti
+        position:
+          type: string
+          description: posizione principale dell'evento
+    FriendList:
+      type: array
+      items: 
+        $ref: "#/components/schemas/User"
+    EventList:
+      type: array
+      items: 
+        $ref: "#/components/schemas/Event"
+    Error:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+          description: un errore di tipo generico in caso di problematiche di comunicazione client server
+security: [bearerAuth: []]
