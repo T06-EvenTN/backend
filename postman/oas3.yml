@@ -15,6 +15,91 @@ paths:
       responses:
         '200':
           description: server raggiungibile
+  /user:
+    get:
+      summary: Returns all of the users with an account
+      responses:
+        '200'
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                 $ref: "#/components/schemas/User"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Aggiunge un nuovo utente
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/login:
+    post:
+      summary: effettua il login con username e password
+      requestBody:
+        description: username e password dell'utente
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Login"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                  token:
+                    $ref: "#/components/securitySchemes/bearerAuth"
+        '401':
+          description: Password is incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /users/{id}:
     description: l'user che corrisponde all'ID inserito
     parameters:
@@ -112,97 +197,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /user/{id}/events:
-    parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            $ref: "#/components/schemas/UserID" 
-    get:
-      summary: lista degli eventi a cui partecipa un determinato utente
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EventList"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /user:
-    post:
-      summary: Aggiunge un nuovo utente
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserID"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /login:
-    post:
-      summary: effettua il login con username e password
-      requestBody:
-        description: username e password dell'utente
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Login"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message: 
-                    type: string
-                  token:
-                    $ref: "#/components/securitySchemes/bearerAuth"
-        '401':
-          description: Password is incorrect
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /friends/{id}:
+  /users/friends/{id}:
     parameters:
         - name: id
           in: path
@@ -230,6 +225,172 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    post:
+      summary: add a friend to a user
+      requestBody:
+        description: id of the new friend
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserID"
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '400':
+          description: Supplied User/Friend ID is not valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events:
+    get:
+      summary: Returns all of the events in the database
+      responses:
+        '200'
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  $ref: "#/components/schemas/Event"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: creates a new event 
+      requestBody:
+        description: the event information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Event"
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '403':
+          description: Auth token mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '400':
+          description: Event is not formatted correctly
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events/{id}:
+    parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: string
+    get:
+      summary: returns the event associated with that ID
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        '404':
+          description: No Event Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '400':
+          description: Invalid Event ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  put:
+    summary: updates an event's information
+    requestBody:
+      description: the new event info
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Event"
+    responses:
+      '200':
+        description: OK
+        content:
+          application/json:
+            schema:
+              type: string
+      '400':
+        description: Provided ID isn't valid
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Error"
+      '404':
+        description: No Event Found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Error"
+      '500':
+        description: Server Error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
