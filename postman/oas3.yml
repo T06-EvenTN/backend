@@ -432,7 +432,7 @@ components:
           type: string
           description: name of the event
         startDate:
-          type: object
+          type: string
           description: event start date
         eventLength:
           type: integer
@@ -440,7 +440,7 @@ components:
         position:
           type: array
           items:
-            type: float
+            type: number
           description: main position of the event, given as an array of floats
     FriendList:
       type: array
