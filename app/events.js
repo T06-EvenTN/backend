@@ -14,7 +14,7 @@ APIRouter.get("", async (req, res) => {
   }
 });
 
-APIRouter.post("", async (req, res) => {
+APIRouter.post("", tokenVerifier, async (req, res) => {
   try {
     if (
       !req.body.eventName ||
@@ -45,8 +45,6 @@ APIRouter.post("", async (req, res) => {
     });
     event = await event.save();
     let eventid = event.id;
-    //TODO: handle incorrect requests (400) and unauth (403)
-
     return res.status(201).send(`created event ${eventid}`);
   } catch (error) {
     res.status(500).send({ message: "internal error." });
