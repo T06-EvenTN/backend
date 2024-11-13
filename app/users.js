@@ -20,6 +20,23 @@ APIRouter.get('', async (req,res) => {
 //create a new user
 APIRouter.post('', async (req,res) => {
   try{
+    if(!req.body.username) {
+      return res.status(400).send({message: "username is empty"});
+    }
+    if(!req.body.email) {
+      return res.status(400).send({message: "email is empty"});
+    }
+    if(!req.body.password) {
+      return res.status(400).send({message: "password is empty"});
+    }
+    const existingUser = await User.findOne({ username: req.body.username });
+    if (existingUser) {
+      return res.status(400).send({ message: "username is already taken" });
+    }
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingEmail) {
+      return res.status(400).send({ message: "email is already taken" });
+    }
     const hashedPswd = await bcrypt.hash(req.body.password, 10);
     let user = new User({
       "username": req.body.username,
