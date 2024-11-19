@@ -7,4 +7,5 @@ module.exports = mongoose.model('Event', new Schema({
   eventLength: Date,
   eventDescription: String,
   eventPosition: [Number],
+  eventPresence: Number
 }, {collection: 'dev-events'}));
