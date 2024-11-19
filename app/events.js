@@ -42,6 +42,7 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       eventLength: req.body.eventLength,
       eventDescription: req.body.eventDescription,
       eventPosition: [req.body.xcoord, req.body.ycoord],
+      eventPresence: 0
     });
     event = await event.save();
     let eventid = event.id;
