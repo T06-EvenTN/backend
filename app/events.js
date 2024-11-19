@@ -2,6 +2,7 @@ const express = require("express");
 const APIRouter = express.Router();
 const Event = require("./models/event");
 const mongoose = require("mongoose");
+const tokenVerifier = require("./tokenVerifier");
 
 APIRouter.get("", async (req, res) => {
   try {
@@ -97,5 +98,22 @@ APIRouter.put("/:id", async (req, res) => {
     res.status(500).send({ message: `internal error: ${error}` });
   }
 });
+
+APIRouter.patch("/counter/:id", async (req,res) =>{
+  try {
+    const { id } = req.params;
+    if (mongoose.isValidObjectId(id)) {
+      const validReq = await Event.findById(id);
+      if (validReq) {
+        await Event.findByIdAndUpdate(id, {
+          eventPresence: validReq.eventPresence+1
+        });
+        res.status(200).send(`updated event ${id}`);
+      } else res.status(404).send({ message: "event not found" });
+    } else res.status(400).send({ message: "invalid ID" });
+  } catch (error) {
+    res.status(500).send({ message: `internal error: ${error}` });
+  }
+})
 
 module.exports = APIRouter;
