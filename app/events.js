@@ -2,6 +2,7 @@ const express = require("express");
 const APIRouter = express.Router();
 const Event = require("./models/event");
 const mongoose = require("mongoose");
+const tokenVerifier = require("./tokenVerifier");
 
 APIRouter.get("", async (req, res) => {
   try {
