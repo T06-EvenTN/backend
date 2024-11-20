@@ -1,6 +1,7 @@
 const express = require('express');
 const APIRouter = express.Router();
 const User = require('./models/user');
+const Event = require('./models/event')
 const mongoose = require('mongoose');
 const bcrypt = require ('bcrypt');
 const jwt = require ('jsonwebtoken');
@@ -163,6 +164,10 @@ APIRouter.post('/friends/:id', async (req,res) => {
       let user = await User.findById(id);
       if(user){
         let friendList = user.friends;
+        //avoid adding same friend multiple times to an user, safety check
+        if (user.friends.includes(newFriend)) {
+          return res.status(400).send({ message: "Friend is already added to this user." });
+        }
         friendList.push(newFriend);
         await User.findByIdAndUpdate(id, {friends: friendList});
         res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
@@ -174,5 +179,55 @@ APIRouter.post('/friends/:id', async (req,res) => {
   }
 });
 
+//get a users events from its id
+APIRouter.get('/events/:id', async (req,res) => {
+  try{  
+    const{ id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      let user = await User.findById(id);
+      if(user){
+        const userEventList = user.events;
+        if(userEventList){
+          res.status(200).send(userEventList);
+        } else res.status(404).send({message: "attribute is not present"});
+      } else {
+        res.status(404).send({message: "no user found"});
+      }
+    } else res.status(400).send({message: "invalid user ID"});
+  } catch(error){
+    res.status(500).send({message: "internal error"});
+  }
+});
+
+//add event to a user
+APIRouter.post('/events/:id', async (req,res) => {
+  try{
+    const newEvent = req.body.id;
+    if(!newEvent){
+      return res.status(400).send({message: "Event ID is not present."})
+    }
+    const {id} = req.params;
+    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newEvent)){
+      let user = await User.findById(id);
+      if (!user) {
+        return res.status(404).send({ message: "User not found." });
+      }
+      let event = await Event.findById(newEvent);
+      //avoid adding same event multiple time, safety check.
+      if (user.events.includes(newEvent)) {
+        return res.status(400).send({ message: "Event is already added to this user." });
+      }
+      if(event){
+        let userEventList = user.events;
+        userEventList.push(newEvent);
+        await User.findByIdAndUpdate(id, {events: userEventList});
+        res.status(201).send(`added event ${newEvent} to the events of ${user.username}`);
+      } else res.status(404).send({message: "event not found"});
+    } else res.status(400).send({message: "supplied user or event ID is not valid"})
+    
+  } catch(error){
+    res.status(500).send({message: error});
+  }
+});
 //TODO: capire a cosa serve lol
 module.exports = APIRouter;
