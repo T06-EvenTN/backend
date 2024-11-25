@@ -180,15 +180,13 @@ APIRouter.post('/friends/:id', async (req,res) => {
 });
 
 //get a users events from its id
-APIRouter.get('/events/:id',tokenVerifier, async (req,res) => {
+APIRouter.get('/events',tokenVerifier, async (req,res) => {
   try{  
-    const{ id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      if(req.user){
+    if(mongoose.isValidObjectId(req.user._id)){ 
+      const{ user } = await User.findOne({_id:req.user._id});//if a user create an account, get the token and than delete the account the token is still legit for about 24 hours
+      if(user){
         const userEventList = req.user.events;
-        if(userEventList){
-          res.status(200).send(userEventList);
-        } else res.status(404).send({message: "attribute is not present"});
+        res.status(200).send(userEventList);
       } else {
         res.status(404).send({message: "no user found"});
       }
