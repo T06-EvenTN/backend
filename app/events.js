@@ -78,7 +78,7 @@ APIRouter.get("/:id", async (req, res) => {
   }
 });
 
-APIRouter.put("/:id", async (req, res) => {
+APIRouter.put("/:id", tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
@@ -110,17 +110,19 @@ APIRouter.put("/:id", async (req, res) => {
   }
 });
 
-APIRouter.patch("/counter/:id", async (req,res) =>{
+APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
-      if (validReq) {
-        await Event.findByIdAndUpdate(id, {
-          eventPresence: validReq.eventPresence+1
-        });
-        res.status(200).send(`updated event ${id}`);
-      } else res.status(404).send({ message: "event not found" });
+      if(req.user.events.find(id)){
+        if (validReq) {
+          await Event.findByIdAndUpdate(id, {
+            eventPresence: validReq.eventPresence+1
+          });
+          res.status(200).send(`updated event ${id}`);
+        } else res.status(404).send({ message: "event not found" });
+      } else res.status(400).send({message: "the event has already been added to the list"})
     } else res.status(400).send({ message: "invalid ID" });
   } catch (error) {
     res.status(500).send({ message: `internal error: ${error}` });
