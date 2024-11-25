@@ -14,5 +14,6 @@ module.exports = mongoose.model('Event', new Schema({
     type: String,
     enum: eventTags, 
     required: true 
-  }
+  },
+  eventCreatedBy: String
 }, {collection: 'dev-events'}));
