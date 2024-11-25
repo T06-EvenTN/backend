@@ -153,6 +153,9 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
 APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
   try {
     const { id } = req.params;
+    if(!id){
+      return res.status(400).send({message: "Event ID is not present."})
+    }
     if (mongoose.isValidObjectId(id)&&mongoose.isValidObjectId(req.user._id)) {
       let user = await User.findOne({_id:req.user._id});
       if (!user) {
