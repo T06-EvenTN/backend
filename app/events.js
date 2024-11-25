@@ -1,6 +1,7 @@
 const express = require("express");
 const APIRouter = express.Router();
 const Event = require("./models/event");
+const User = require("./models/user");
 const mongoose = require("mongoose");
 const tokenVerifier = require("./tokenVerifier");
 
@@ -152,17 +153,21 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
 APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
   try {
     const { id } = req.params;
-    if (mongoose.isValidObjectId(id)) {
+    if (mongoose.isValidObjectId(id)&&mongoose.isValidObjectId(req.user._id)) {
+      let user = await User.findOne({_id:req.user._id});
+      if (!user) {
+        return res.status(404).send({ message: "User not found." });
+      }
       const validReq = await Event.findById(id);
-      if(req.user.events.find(id)){
-        if (validReq) {
+      if (validReq) {
+        if(!user.events.includes(id)){
           await Event.findByIdAndUpdate(id, {
             eventPresence: validReq.eventPresence+1
           });
           res.status(200).send(`updated event ${id}`);
-        } else res.status(404).send({ message: "event not found" });
-      } else res.status(400).send({message: "the event has already been added to the list"})
-    } else res.status(400).send({ message: "invalid ID" });
+        } else res.status(400).send({message: "the event has already been added to the list"})
+      } else res.status(404).send({ message: "event not found" });
+    } else res.status(400).send({ message: "user ID or event ID is not valid" });
   } catch (error) {
     res.status(500).send({ message: `internal error: ${error}` });
   }
