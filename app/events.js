@@ -52,7 +52,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       eventDescription: req.body.eventDescription,
       eventPosition: [req.body.xcoord, req.body.ycoord],
       eventPresence: 0,
-      eventTag: req.body.eventTag
+      eventTag: req.body.eventTag,
+      eventCreatedBy: req.user._id
     });
     event = await event.save();
     let eventid = event.id;
@@ -78,12 +79,15 @@ APIRouter.get("/:id", async (req, res) => {
   }
 });
 
-APIRouter.put("/:id", async (req, res) => {
+APIRouter.put("/:id", tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
       if (validReq) {
+        if(!(req.user._id == validReq.eventCreatedBy)) {
+          return res.status(400).send({ message: "User is not the same that created the event." });
+        }
         if (
           req.body.eventName !== undefined &&
           (typeof req.body.eventName !== "string")
@@ -127,7 +131,7 @@ APIRouter.put("/:id", async (req, res) => {
             req.body.ycoord !== undefined ? req.body.ycoord : validReq.eventPosition[1] 
           ];
         }
-        
+
         const newEventTag = req.body.eventTag ?? validReq.eventTag;
         await Event.findByIdAndUpdate(id, {
           eventName: newEventName,
@@ -162,12 +166,15 @@ APIRouter.patch("/counter/:id", async (req,res) =>{
   }
 })
 
-APIRouter.delete("/:id", async (req, res) => {
+APIRouter.delete("/:id",tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
       if (validReq) {
+        if(!(req.user._id == validReq.eventCreatedBy)) {
+          return res.status(400).send({ message: "User is not the same that created the event." });
+        }
         await Event.findByIdAndDelete(id);
         res.status(200).send(`deleted event ${id}`);
       } else res.status(404).send({ message: "event not found" });
