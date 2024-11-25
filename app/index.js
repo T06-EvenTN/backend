@@ -1,6 +1,7 @@
 //API requirements
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 
 const users = require('./users.js');
 const events = require('./events.js');
@@ -12,6 +13,8 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(cors());
+
 
 // mongoose connection
 const mongoose = require('mongoose');
