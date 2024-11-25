@@ -84,15 +84,50 @@ APIRouter.put("/:id", async (req, res) => {
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
       if (validReq) {
+        if (
+          req.body.eventName !== undefined &&
+          (typeof req.body.eventName !== "string")
+        ) {
+          return res.status(400).send({ message: "Name must be a string." });
+        }
+        if (
+          req.body.eventDescription !== undefined &&
+          (typeof req.body.eventDescription !== "string")
+        ) {
+          return res.status(400).send({ message: "Description must be a string." });
+        }
+        if (
+          req.body.xcoord !== undefined && req.body.ycoord !== undefined &&
+          (typeof req.body.xcoord !== "number" || typeof req.body.ycoord !== "number")
+        ) {
+          return res.status(400).send({ message: "Coordinates must be numbers." });
+        }
+
+        // Check if event start date is valid (only if provided)
+        if (req.body.eventStart && isNaN(Date.parse(req.body.eventStart))) {
+          return res.status(400).send({ message: "Invalid event start date." });
+        }
+
+        // Check if eventTag is valid (only if provided)
+        if (req.body.eventTag && !eventTags.includes(req.body.eventTag)) {
+          return res.status(400).send({
+            message: `Invalid tag. Must be one of: ${eventTags.join(', ')}.`
+          });
+        }
         const newEventName = req.body.eventName ?? validReq.eventName;
         const newEventStart = req.body.eventStart ?? validReq.eventStart;
         const newEventLength = req.body.eventLength ?? validReq.eventLength;
         const newEventDescription =
           req.body.eventDescription ?? validReq.eventDescription;
-        let newEventPosition = [];
-        if (!req.body.xcoord || !req.body.ycoord) {
-          newEventPosition = validReq.eventPosition;
-        } else newEventPosition = [req.body.xcoord, req.body.ycoord];
+
+        let newEventPosition = validReq.eventPosition; 
+        if (req.body.xcoord !== undefined || req.body.ycoord !== undefined) {
+          newEventPosition = [
+            req.body.xcoord !== undefined ? req.body.xcoord : validReq.eventPosition[0],
+            req.body.ycoord !== undefined ? req.body.ycoord : validReq.eventPosition[1] 
+          ];
+        }
+        
         const newEventTag = req.body.eventTag ?? validReq.eventTag;
         await Event.findByIdAndUpdate(id, {
           eventName: newEventName,
