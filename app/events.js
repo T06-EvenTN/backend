@@ -98,4 +98,20 @@ APIRouter.put("/:id", async (req, res) => {
   }
 });
 
+//delete an event from the db given its id
+APIRouter.delete('/:id', async (req,res) => {
+  try{
+    const { id } = req.params;
+    if(mongoose.isValidObjectId(id)){
+      const validReq = await Event.findById(id);
+      if(validReq){
+        await Event.findByIdAndDelete(id);
+        res.status(200).send(`deleted event ${id}`);
+      } else res.status(404).send({message: "event not found"});
+    } else res.status(400).send({message: "invalid ID"});
+  } catch (error) {
+    res.status(500).send({message: `internal error: ${error}`});
+  }
+});
+
 module.exports = APIRouter;
