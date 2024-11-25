@@ -4,6 +4,8 @@ const Event = require("./models/event");
 const mongoose = require("mongoose");
 const tokenVerifier = require("./tokenVerifier");
 
+const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
+
 APIRouter.get("", async (req, res) => {
   try {
     let events = await Event.find().exec();
@@ -21,7 +23,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       !req.body.eventName ||
       !req.body.eventStart ||
       !req.body.eventLength ||
-      !req.body.eventDescription
+      !req.body.eventDescription ||
+      !req.body.eventTag
     ) {
       //await event.delete(); //decidere se metterlo o no
       return res
@@ -37,13 +40,19 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
     if (isNaN(Date.parse(req.body.eventStart))) {
       return res.status(400).send({ message: "invalid event start date." });
     }
+    if (!eventTags.includes(req.body.eventTag)) {
+      return res.status(400).send({
+        message: `invalid tag. Must be one of: ${eventTags.join(', ')}.`
+      });
+    }
     let event = new Event({
       eventName: req.body.eventName,
       eventStart: req.body.eventStart,
       eventLength: req.body.eventLength,
       eventDescription: req.body.eventDescription,
       eventPosition: [req.body.xcoord, req.body.ycoord],
-      eventPresence: 0
+      eventPresence: 0,
+      eventTag: req.body.eventTag
     });
     event = await event.save();
     let eventid = event.id;
@@ -84,12 +93,14 @@ APIRouter.put("/:id", async (req, res) => {
         if (!req.body.xcoord || !req.body.ycoord) {
           newEventPosition = validReq.eventPosition;
         } else newEventPosition = [req.body.xcoord, req.body.ycoord];
+        const newEventTag = req.body.eventTag ?? validReq.eventTag;
         await Event.findByIdAndUpdate(id, {
           eventName: newEventName,
           eventStart: newEventStart,
           eventLength: newEventLength,
           eventDescription: newEventDescription,
           eventPosition: newEventPosition,
+          eventTag: newEventTag,
         });
         res.status(200).send(`updated event ${id}`);
       } else res.status(404).send({ message: "event not found" });
