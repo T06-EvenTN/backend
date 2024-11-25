@@ -199,28 +199,28 @@ APIRouter.get('/events/:id',tokenVerifier, async (req,res) => {
 });
 
 //add event to a user
-APIRouter.post('/events/:id', async (req,res) => {
+APIRouter.post('/events/:id', tokenVerifier, async (req,res) => {
   try{
-    const newEvent = req.body.id;
+    const newEvent = req.params.id;
     if(!newEvent){
       return res.status(400).send({message: "Event ID is not present."})
     }
-    const {id} = req.params;
-    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newEvent)){
-      let user = await User.findById(id);
+    if(mongoose.isValidObjectId(newEvent)&&mongoose.isValidObjectId(req.user._id)){
+      let user = await User.findOne({_id:req.user._id});
       if (!user) {
         return res.status(404).send({ message: "User not found." });
       }
       let event = await Event.findById(newEvent);
       //avoid adding same event multiple time, safety check.
-      if (user.events.includes(newEvent)) {
-        return res.status(400).send({ message: "Event is already added to this user." });
-      }
       if(event){
         let userEventList = user.events;
-        userEventList.push(newEvent);
-        await User.findByIdAndUpdate(id, {events: userEventList});
-        res.status(201).send(`added event ${newEvent} to the events of ${user.username}`);
+        if (userEventList.includes(newEvent)) {
+          return res.status(400).send({ message: "Event is already added to this user." });
+        } else{
+          userEventList.push(newEvent);
+          await User.findByIdAndUpdate(req.user, {events: userEventList});
+          res.status(201).send(`added event ${newEvent} to the events of ${req.user.username}`);
+        }
       } else res.status(404).send({message: "event not found"});
     } else res.status(400).send({message: "supplied user or event ID is not valid"})
     
@@ -228,5 +228,5 @@ APIRouter.post('/events/:id', async (req,res) => {
     res.status(500).send({message: error});
   }
 });
-//TODO: capire a cosa serve lol
+
 module.exports = APIRouter;
