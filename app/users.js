@@ -179,7 +179,7 @@ APIRouter.post('/friends/:id', tokenVerifier, async (req,res) => {
 APIRouter.get('/events',tokenVerifier, async (req,res) => {
   try{  
     if(mongoose.isValidObjectId(req.user._id)){ 
-      const{ user } = await User.findOne({_id:req.user._id});//if a user create an account, get the token and than delete the account the token is still legit for about 24 hours
+      const user = await User.findOne({_id:req.user._id});//if a user create an account, get the token and than delete the account the token is still legit for about 24 hours
       if(user){
         const userEventList = req.user.events;
         res.status(200).send(userEventList);
