@@ -153,24 +153,25 @@ APIRouter.get('/friends/:id', async (req,res) => {
 });
 
 //add friend to a user
-APIRouter.post('/friends/:id', async (req,res) => {
+APIRouter.post('/friends/:id', tokenVerifier, async (req,res) => {
   try{
-    const newFriend = req.body.id;
-    if(!newFriend){
+    if(!req.params.id){ //new friend id
       res.status(400).send({message: "Friend ID is not present."})
     }
-    const {id} = req.params;
-    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newFriend)){
-      let user = await User.findById(id);
+    if(mongoose.isValidObjectId(req.user._id /*user id*/) && mongoose.isValidObjectId(req.params.id)){
+      let user = await User.findById(req.user._id);
       if(user){
         let friendList = user.friends;
+        let newFriend= await User.findById(req.params.id);
         //avoid adding same friend multiple times to an user, safety check
-        if (user.friends.includes(newFriend)) {
-          return res.status(400).send({ message: "Friend is already added to this user." });
-        }
-        friendList.push(newFriend);
-        await User.findByIdAndUpdate(id, {friends: friendList});
-        res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
+        if(!newFriend){
+          if (user.friends.includes(newFriend)) {
+            return res.status(400).send({ message: "Friend is already added to this user." });
+          }
+          friendList.push(newFriend);
+          await User.findByIdAndUpdate(id, {friends: friendList});
+          res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
+        } else re.status(404).send({message: "friend not found"});
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "supplied user or friend ID is not valid"})
     
