@@ -112,14 +112,14 @@ APIRouter.delete('/:id', async (req,res) => {
 });
 
 //replace user info
-APIRouter.put('/:id', async (req,res) => {
+APIRouter.put('', tokenVerifier, async (req,res) => {
   try{
-    const { id } = req.params;
+    const { id } = req.user._id;
     if(mongoose.isValidObjectId(id)){
-      const validReq = await User.findById(id);
-      if(validReq){
-        const newUser = req.body.username ?? validReq.username;
-        const newEmail = req.body.email ?? validReq.email;
+      const user = await User.findById(id);
+      if(user){ //TODO: add name and surname?
+        const newUser = req.body.username ?? user.username;
+        const newEmail = req.body.email ?? user.email;
         await User.findByIdAndUpdate(id, {
           "username": newUser,
           "email": newEmail,
@@ -132,7 +132,7 @@ APIRouter.put('/:id', async (req,res) => {
   }
 });
 
-//get a user's friends from its id
+//get a user's friends from its id (TODO: add token verification?)
 APIRouter.get('/friends/:id', async (req,res) => {
   try{  
     const{ id } = req.params;
@@ -164,7 +164,7 @@ APIRouter.post('/friends/:id', tokenVerifier, async (req,res) => {
         let friendList = user.friends;
         let newFriend= await User.findById(req.params.id);
         //avoid adding same friend multiple times to an user, safety check
-        if(!newFriend){
+        if(newFriend){
           if (user.friends.includes(newFriend)) {
             return res.status(400).send({ message: "Friend is already added to this user." });
           }
