@@ -76,14 +76,11 @@ APIRouter.post('/login', async (req,res) => {
 })
 
 //get a user from its id
-APIRouter.get('/:id', tokenVerifier, async (req,res) => {
+APIRouter.get('/user', tokenVerifier, async (req,res) => {
   try{ 
-    if (req.user._id !== req.params.id) {
-      return res.status(403).send('User token mismatch');
-    } 
-    const{ id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      let user = await User.findById(id);
+    const{ _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      let user = await User.findById(_id);
       if(user){
         res.status(200).send(user);
       } else {
@@ -96,14 +93,14 @@ APIRouter.get('/:id', tokenVerifier, async (req,res) => {
 });
 
 //delete a user from the db given its id
-APIRouter.delete('/:id', async (req,res) => {
+APIRouter.delete('',tokenVerifier, async (req,res) => {
   try{
-    const { id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      const validReq = await User.findById(id);
-      if(validReq){
-        await User.findByIdAndDelete(id);
-        res.status(200).send(`deleted user ${id}`);
+    const { _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      const user = await User.findById(_id);
+      if(user){
+        await User.findByIdAndDelete(_id);
+        res.status(200).send(`deleted user ${_id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
@@ -112,19 +109,19 @@ APIRouter.delete('/:id', async (req,res) => {
 });
 
 //replace user info
-APIRouter.put('/:id', async (req,res) => {
+APIRouter.put('', tokenVerifier, async (req,res) => {
   try{
-    const { id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      const validReq = await User.findById(id);
-      if(validReq){
-        const newUser = req.body.username ?? validReq.username;
-        const newEmail = req.body.email ?? validReq.email;
-        await User.findByIdAndUpdate(id, {
+    const { _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      const user = await User.findById(_id);
+      if(user){ //TODO: add name and surname?
+        const newUser = req.body.username ?? user.username;
+        const newEmail = req.body.email ?? user.email;
+        await User.findByIdAndUpdate(_id, {
           "username": newUser,
           "email": newEmail,
         });
-        res.status(200).send(`updated  user ${id}`);
+        res.status(200).send(`updated  user ${_id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
@@ -133,16 +130,14 @@ APIRouter.put('/:id', async (req,res) => {
 });
 
 //get a user's friends from its id
-APIRouter.get('/friends/:id', async (req,res) => {
+APIRouter.get('/friends', tokenVerifier, async (req,res) => {
   try{  
-    const{ id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      let user = await User.findById(id);
+    const{ _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      let user = await User.findById(_id);
       if(user){
         const friendList = user.friends;
-        if(friendList){
-          res.status(200).send(friendList);
-        } else res.status(404).send({message: "attribute is not present"});
+        res.status(200).send(friendList);
       } else {
         res.status(404).send({message: "no user found"});
       }
@@ -153,24 +148,25 @@ APIRouter.get('/friends/:id', async (req,res) => {
 });
 
 //add friend to a user
-APIRouter.post('/friends/:id', async (req,res) => {
+APIRouter.post('/friends/:id', tokenVerifier, async (req,res) => {
   try{
-    const newFriend = req.body.id;
-    if(!newFriend){
+    if(!req.params.id){ //new friend id
       res.status(400).send({message: "Friend ID is not present."})
     }
-    const {id} = req.params;
-    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newFriend)){
-      let user = await User.findById(id);
+    if(mongoose.isValidObjectId(req.user._id /*user id*/) && mongoose.isValidObjectId(req.params.id)){
+      let user = await User.findById(req.user._id);
       if(user){
         let friendList = user.friends;
+        let newFriend= await User.findById(req.params.id);
         //avoid adding same friend multiple times to an user, safety check
-        if (user.friends.includes(newFriend)) {
-          return res.status(400).send({ message: "Friend is already added to this user." });
-        }
-        friendList.push(newFriend);
-        await User.findByIdAndUpdate(id, {friends: friendList});
-        res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
+        if(newFriend){
+          if (user.friends.includes(newFriend)) {
+            return res.status(400).send({ message: "Friend is already added to this user." });
+          }
+          friendList.push(newFriend);
+          await User.findByIdAndUpdate(id, {friends: friendList});
+          res.status(201).send(`added user ${newFriend} to the friends of ${user.username}`);
+        } else re.status(404).send({message: "friend not found"});
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "supplied user or friend ID is not valid"})
     
@@ -180,16 +176,13 @@ APIRouter.post('/friends/:id', async (req,res) => {
 });
 
 //get a users events from its id
-APIRouter.get('/events/:id', async (req,res) => {
+APIRouter.get('/events',tokenVerifier, async (req,res) => {
   try{  
-    const{ id } = req.params;
-    if(mongoose.isValidObjectId(id)){
-      let user = await User.findById(id);
+    if(mongoose.isValidObjectId(req.user._id)){ 
+      const{ user } = await User.findOne({_id:req.user._id});//if a user create an account, get the token and than delete the account the token is still legit for about 24 hours
       if(user){
-        const userEventList = user.events;
-        if(userEventList){
-          res.status(200).send(userEventList);
-        } else res.status(404).send({message: "attribute is not present"});
+        const userEventList = req.user.events;
+        res.status(200).send(userEventList);
       } else {
         res.status(404).send({message: "no user found"});
       }
@@ -200,28 +193,28 @@ APIRouter.get('/events/:id', async (req,res) => {
 });
 
 //add event to a user
-APIRouter.post('/events/:id', async (req,res) => {
+APIRouter.post('/events/:id', tokenVerifier, async (req,res) => {
   try{
-    const newEvent = req.body.id;
+    const newEvent = req.params.id;
     if(!newEvent){
       return res.status(400).send({message: "Event ID is not present."})
     }
-    const {id} = req.params;
-    if(mongoose.isValidObjectId(id) && mongoose.isValidObjectId(newEvent)){
-      let user = await User.findById(id);
+    if(mongoose.isValidObjectId(newEvent)&&mongoose.isValidObjectId(req.user._id)){
+      let user = await User.findOne({_id:req.user._id});
       if (!user) {
         return res.status(404).send({ message: "User not found." });
       }
       let event = await Event.findById(newEvent);
       //avoid adding same event multiple time, safety check.
-      if (user.events.includes(newEvent)) {
-        return res.status(400).send({ message: "Event is already added to this user." });
-      }
       if(event){
         let userEventList = user.events;
-        userEventList.push(newEvent);
-        await User.findByIdAndUpdate(id, {events: userEventList});
-        res.status(201).send(`added event ${newEvent} to the events of ${user.username}`);
+        if (userEventList.includes(newEvent)) {
+          return res.status(400).send({ message: "Event is already added to this user." });
+        } else{
+          userEventList.push(newEvent);
+          await User.findByIdAndUpdate(req.user, {events: userEventList});
+          res.status(201).send(`added event ${newEvent} to the events of ${req.user.username}`);
+        }
       } else res.status(404).send({message: "event not found"});
     } else res.status(400).send({message: "supplied user or event ID is not valid"})
     
@@ -229,5 +222,5 @@ APIRouter.post('/events/:id', async (req,res) => {
     res.status(500).send({message: error});
   }
 });
-//TODO: capire a cosa serve lol
+
 module.exports = APIRouter;
