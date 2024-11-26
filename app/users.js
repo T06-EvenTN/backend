@@ -132,17 +132,15 @@ APIRouter.put('', tokenVerifier, async (req,res) => {
   }
 });
 
-//get a user's friends from its id (TODO: add token verification?)
-APIRouter.get('/friends/:id', async (req,res) => {
+//get a user's friends from its id
+APIRouter.get('/friends', tokenVerifier, async (req,res) => {
   try{  
-    const{ id } = req.params;
+    const{ id } = req.user._id;
     if(mongoose.isValidObjectId(id)){
       let user = await User.findById(id);
       if(user){
         const friendList = user.friends;
-        if(friendList){
-          res.status(200).send(friendList);
-        } else res.status(404).send({message: "attribute is not present"});
+        res.status(200).send(friendList);
       } else {
         res.status(404).send({message: "no user found"});
       }
