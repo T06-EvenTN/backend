@@ -76,11 +76,11 @@ APIRouter.post('/login', async (req,res) => {
 })
 
 //get a user from its id
-APIRouter.get('', tokenVerifier, async (req,res) => {
+APIRouter.get('/user', tokenVerifier, async (req,res) => {
   try{ 
-    const{ id } = req.user._id;
-    if(mongoose.isValidObjectId(id)){
-      let user = await User.findById(id);
+    const{ _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      let user = await User.findById(_id);
       if(user){
         res.status(200).send(user);
       } else {
@@ -95,12 +95,12 @@ APIRouter.get('', tokenVerifier, async (req,res) => {
 //delete a user from the db given its id
 APIRouter.delete('',tokenVerifier, async (req,res) => {
   try{
-    const { id } = req.user._id;
-    if(mongoose.isValidObjectId(id)){
-      const user = await User.findById(id);
+    const { _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      const user = await User.findById(_id);
       if(user){
-        await User.findByIdAndDelete(id);
-        res.status(200).send(`deleted user ${id}`);
+        await User.findByIdAndDelete(_id);
+        res.status(200).send(`deleted user ${_id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
@@ -111,17 +111,17 @@ APIRouter.delete('',tokenVerifier, async (req,res) => {
 //replace user info
 APIRouter.put('', tokenVerifier, async (req,res) => {
   try{
-    const { id } = req.user._id;
-    if(mongoose.isValidObjectId(id)){
-      const user = await User.findById(id);
+    const { _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      const user = await User.findById(_id);
       if(user){ //TODO: add name and surname?
         const newUser = req.body.username ?? user.username;
         const newEmail = req.body.email ?? user.email;
-        await User.findByIdAndUpdate(id, {
+        await User.findByIdAndUpdate(_id, {
           "username": newUser,
           "email": newEmail,
         });
-        res.status(200).send(`updated  user ${id}`);
+        res.status(200).send(`updated  user ${_id}`);
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
@@ -132,9 +132,9 @@ APIRouter.put('', tokenVerifier, async (req,res) => {
 //get a user's friends from its id
 APIRouter.get('/friends', tokenVerifier, async (req,res) => {
   try{  
-    const{ id } = req.user._id;
-    if(mongoose.isValidObjectId(id)){
-      let user = await User.findById(id);
+    const{ _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      let user = await User.findById(_id);
       if(user){
         const friendList = user.friends;
         res.status(200).send(friendList);
