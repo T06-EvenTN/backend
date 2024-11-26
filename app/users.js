@@ -76,12 +76,9 @@ APIRouter.post('/login', async (req,res) => {
 })
 
 //get a user from its id
-APIRouter.get('/:id', tokenVerifier, async (req,res) => {
+APIRouter.get('', tokenVerifier, async (req,res) => {
   try{ 
-    if (req.user._id !== req.params.id) {
-      return res.status(403).send('User token mismatch');
-    } 
-    const{ id } = req.params;
+    const{ id } = req.user._id;
     if(mongoose.isValidObjectId(id)){
       let user = await User.findById(id);
       if(user){
