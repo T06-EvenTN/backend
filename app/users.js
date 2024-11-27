@@ -9,7 +9,7 @@ const tokenVerifier = require('./tokenVerifier');
 
 
 //get all users in users db
-APIRouter.get('', async (req,res) => {
+APIRouter.get('/all', async (req,res) => {
     let users = await User.find().exec();
     if(users){
       res.status(200).send(users);
@@ -76,7 +76,7 @@ APIRouter.post('/login', async (req,res) => {
 })
 
 //get a user from its id
-APIRouter.get('/user', tokenVerifier, async (req,res) => {
+APIRouter.get('/info', tokenVerifier, async (req,res) => {
   try{ 
     const{ _id } = req.user;
     if(mongoose.isValidObjectId(_id)){
