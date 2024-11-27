@@ -7,7 +7,8 @@ const tokenVerifier = require("./tokenVerifier");
 
 const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
 
-APIRouter.get("", async (req, res) => {
+// returns all events
+APIRouter.get('/all', async (req, res) => {
   try {
     let events = await Event.find().exec();
     if (events && events.length > 0) {
@@ -18,6 +19,7 @@ APIRouter.get("", async (req, res) => {
   }
 });
 
+// creates a new event, if previously logged in and able to do so
 APIRouter.post("", tokenVerifier, async (req, res) => {
   try {
     if (
@@ -27,7 +29,6 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       !req.body.eventDescription ||
       !req.body.eventTag
     ) {
-      //await event.delete(); //decidere se metterlo o no
       return res
         .status(400)
         .send({ message: "Missing or invalid parameters." });
@@ -64,7 +65,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
   }
 });
 
-APIRouter.get("/:id", async (req, res) => {
+// returns one event
+APIRouter.get("/info/:id", async (req, res) => {
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
@@ -80,6 +82,7 @@ APIRouter.get("/:id", async (req, res) => {
   }
 });
 
+// modifies event information, only event creator can do so
 APIRouter.put("/:id", tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
@@ -150,6 +153,7 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
   }
 });
 
+// presence counter gets increased by one
 APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
   try {
     const { id } = req.params;
@@ -176,6 +180,7 @@ APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
   }
 })
 
+// deletes event, only event creator can do so
 APIRouter.delete("/:id",tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
