@@ -1,8 +1,8 @@
 openapi: '3.0.3'
 info:
   title: EventAPI
-  version: '0.0.1'
-  description: 'API per il progetto di ingengeria del software'
+  version: '0.1.1'
+  description: 'API for EvenTN, the open source event application for the city of Trento'
 servers:
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
@@ -11,6 +11,7 @@ servers:
 paths:
   /test:
     get:
+      tags: [Test the API] 
       description: test endpoint, checks if the server is up
       responses:
         '200':
@@ -20,7 +21,110 @@ paths:
               schema:
                 type: string
   /user:
+    post:
+      tags: [User] 
+      summary: Adds a new user
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [User] 
+      summary: deletes a logged in user permanently
+      security: 
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags: [User] 
+      summary: updates a user's email or username
+      security: 
+        - bearerAuth: []
+      requestBody:
+        description: the informations to update
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserID"
+        '400':
+          description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /user/all:
     get:
+      tags: [User] 
       summary: Returns all of the users with an account
       responses:
         '200':
@@ -41,29 +145,9 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
-      summary: Adds a new user
-      responses:
-        '201':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserID"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
   /user/login:
     post:
+      tags: [User] 
       summary: logs in the user via username and password
       requestBody:
         description: username and password of the user
@@ -97,17 +181,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/{id}:
-    description: returns the user object that corresponds to the supplied ID
-    parameters:
-        - name: id
-          in: path
-          description: ID of the user to search
-          required: true
-          schema:
-            $ref: "#/components/schemas/UserID" 
+  /users/info:
     get:
+      tags: [User] 
       summary: returns the user object which matches the supplied ID
+      security: 
+        - bearerAuth: []
       responses:
         '200':
           description: OK
@@ -115,35 +194,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
         '400':
           description: Invalid UserID
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-    delete:
-      summary: deletes a user permanently
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserID"
-        '400':
-          description: Provided ID isn't valid
+        '403':
+          description: Authentication failed
           content:
             application/json:
               schema:
@@ -160,49 +218,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    put:
-      summary: updates a user's information
-      requestBody:
-        description: the informations to update
-        required: false
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserID"
-        '400':
-          description: Provided ID isn't valid
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '404':
-          description: No User Found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        '500':
-          description: Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /users/friends/{id}:
-    parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            $ref: "#/components/schemas/UserID" 
+  /users/friends:
     get:
+      tags: [Friends] 
       summary: The list of friends of a given user
+      security: 
+      - bearerAuth: []
       responses:
         '200':
           description: OK
@@ -210,6 +231,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/FriendList"
+        '400':
+          description: Invalid User ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         '404':
           description: No User Found
           content:
@@ -222,15 +255,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post:
-      summary: add a friend to a user
-      requestBody:
-        description: id of the new friend
-        required: true
-        content:
-          application/json:
+  /users/friends/{friendId}:
+    parameters:
+          - name: friendId
+            in: path
+            required: true
             schema:
-              $ref: "#/components/schemas/UserID"
+              type: string
+    post:
+      tags: [Friends] 
+      summary: add a friend (friendID) to a user (API caller)
+      security:
+      - bearerAuth: []
       responses:
         '201':
           description: OK
@@ -245,13 +281,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         '400':
-          description: Supplied User/Friend ID is not valid
+          description: Supplied Friend ID is not valid or already added
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         '404':
-          description: No User Found
+          description: No User or Friend Found
           content:
             application/json:
               schema:
@@ -262,9 +298,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /events:
+  /users/events:
     get:
-      summary: Returns all of the events in the database
+      tags: [User] 
+      summary: returns the events a user has saved
+      security:
+      - bearerAuth: []
       responses:
         '200':
           description: OK
@@ -272,6 +311,18 @@ paths:
             application/json:
               schema:
                   $ref: "#/components/schemas/EventList"
+        '400':
+          description: Invalid User ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Auth Token Mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         '404':
           description: No User Found
           content:
@@ -284,8 +335,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /users/events/{eventId}:
+    parameters:
+          - name: eventId
+            in: path
+            required: true
+            schema:
+              type: string
     post:
-      summary: creates a new event 
+      tags: [User] 
+      summary: adds the supplied event to a user
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/EventList"
+        '400':
+          description: Event is invalid or already present
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Auth Token Mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No Event or User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+                
+  /events:
+    post:
+      tags: [Events] 
+      summary: creates a new event (only if user is logged in)
+      security: 
+      - bearerAuth: []
       requestBody:
         description: the event information
         required: true
@@ -318,7 +417,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /events/{id}:
+  /events/all:
+    get:
+      tags: [Events] 
+      summary: Returns all of the events in the database
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/EventList"
+        '404':
+          description: No User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events/info/{id}:
     parameters:
           - name: id
             in: path
@@ -326,6 +448,7 @@ paths:
             schema:
               type: string
     get:
+      tags: [Events] 
       summary: returns the event associated with that ID
       responses:
         '200':
@@ -352,8 +475,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /events/{eventId}:
+    parameters:
+          - name: eventId
+            in: path
+            required: true
+            schema:
+              type: string
     put:
+      tags: [Events] 
       summary: updates an event's information
+      security:
+      - bearerAuth: []
       requestBody:
         description: the new event info
         required: false
@@ -370,6 +503,73 @@ paths:
                 type: string
         '400':
           description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No Event Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      tags: [Events] 
+      summary: deletes an event (event creator must match user)
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: invalid eventId or creator/user mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No Event Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events/counter/{eventId}:
+    parameters:
+          - name: eventId
+            in: path
+            required: true
+            schema:
+              type: string
+    patch:
+      tags: [Events] 
+      summary: increases the number of attendees by one
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: invalid eventId or user is already going
           content:
             application/json:
               schema:
@@ -425,7 +625,9 @@ components:
         - title
         - startDate
         - eventLength
+        - eventDescription
         - position
+        - tag
       type: object
       properties:
         title:
@@ -437,11 +639,17 @@ components:
         eventLength:
           type: integer
           description: event length specified as time offset from the start
+        eventDescription:
+          type: string
+          description: informations about the event
         position:
           type: array
           items:
             type: number
           description: main position of the event, given as an array of floats
+        tag:
+          $ref: "#/components/schemas/Tag"
+            
     FriendList:
       type: array
       items: 
@@ -450,6 +658,15 @@ components:
       type: array
       items: 
         $ref: "#/components/schemas/Event"
+    Tag:
+      type: string
+      enum:
+        - Musica
+        - Fastival
+        - Sport
+        - Conferenza
+        - Sagra
+      description: type of the event
     Error:
       required:
         - message
@@ -458,4 +675,3 @@ components:
         message:
           type: string
           description: a generic error given in non-200 type requests. logs the error message.
-security: [bearerAuth: []]
