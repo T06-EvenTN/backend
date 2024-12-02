@@ -5,8 +5,9 @@ const Event = require('./models/event')
 const mongoose = require('mongoose');
 const bcrypt = require ('bcrypt');
 const jwt = require ('jsonwebtoken');
-const tokenVerifier = require('./tokenVerifier');
-
+const tokenVerifier = require('./middleware/tokenVerifier');
+const Validate = require('./middleware/validate.js');
+const {check} = require('express-validator');
 
 //get all users in users db
 APIRouter.get('/all', async (req,res) => {
@@ -17,19 +18,38 @@ APIRouter.get('/all', async (req,res) => {
       res.status(500).send({message: 'no user found'});
     }
 })
-
 //create a new user
-APIRouter.post('', async (req,res) => {
-  try{
-    if(!req.body.username) {
-      return res.status(400).send({message: "username is empty"});
-    }
-    if(!req.body.email) {
-      return res.status(400).send({message: "email is empty"});
-    }
-    if(!req.body.password) {
-      return res.status(400).send({message: "password is empty"});
-    }
+APIRouter.post('/register',check("email")
+    .isEmpty()
+    .withMessage("email is empty")
+    .isEmail()
+    .withMessage("Enter a valid email address")
+    .normalizeEmail(),
+  // check("first_name")
+  //   .not()
+  //   .isEmpty()
+  //   .withMessage("You first name is required")
+  //   .trim()
+  //   .escape(),
+  // check("last_name")
+  //   .not()
+  //   .isEmpty()
+  //   .withMessage("You last name is required")
+  //   .trim()
+  //   .escape(),
+  check("password", 'the password must contain 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol')
+    .notEmpty()
+    .isStrongPassword(),
+  check("username")
+    .notEmpty()
+    .withMessage("username is empty")
+    .isLength({min: 3})
+    .withMessage("username must be at least 3 characters long")
+    .isAlphanumeric()
+    .withMessage("username must contain only letters and numbers"),
+  Validate,
+  async (req,res) => {
+  try{ //forse sarebbe da fare delle custom validation per username e email
     const existingUser = await User.findOne({ username: req.body.username });
     if (existingUser) {
       return res.status(400).send({ message: "username is already taken" });
