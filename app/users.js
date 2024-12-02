@@ -139,7 +139,22 @@ APIRouter.delete('',tokenVerifier, async (req,res) => {
 });
 
 //replace user info
-APIRouter.put('', tokenVerifier, async (req,res) => {
+APIRouter.put('', tokenVerifier,
+  check("username")
+    .notEmpty()
+    .withMessage("username is empty")
+    .isLength({min: 3})
+    .withMessage("username must be at least 3 characters long")
+    .isAlphanumeric()
+    .withMessage("username must contain only letters and numbers"),
+  check("email")
+    .notEmpty()
+    .withMessage("email is empty")
+    .isEmail()
+    .withMessage("Enter a valid email address")
+    .normalizeEmail(),
+  Validate,
+  async (req,res) => {
   try{
     const { _id } = req.user;
     if(mongoose.isValidObjectId(_id)){
