@@ -76,7 +76,17 @@ APIRouter.post('/register',check("email")
 });
 
 //login with username and password
-APIRouter.post('/login', async (req,res) => {
+APIRouter.post('/login',
+  check("username")
+    .notEmpty()
+    .withMessage("username is empty")
+    .isAlphanumeric()
+    .withMessage("username must contain only letters and numbers"),
+  check("password")
+    .notEmpty()
+    .withMessage("password is empty"),
+  Validate,
+  async (req,res) => {
   try{
     const user = await User.findOne({username: req.body.username});
     if(user === null){
