@@ -99,7 +99,7 @@ APIRouter.get('/search/:id', tokenVerifier, async (req, res) => {
     if (!username) {
       return res.status(400).send({ message: "username is required" });
     }
-    let users = await User.findOne({ username: { $regex: username, $options: 'i' } });
+    let users = await User.findOne({ username: { $regex: username, $options: 'i' } }).select('-password');
     if (users) {
       return res.status(200).send(users);
     } else {
