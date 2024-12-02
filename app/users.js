@@ -92,6 +92,25 @@ APIRouter.get('/info', tokenVerifier, async (req,res) => {
   }
 });
 
+// search a user with the username, exact match
+APIRouter.get('/search/:id', tokenVerifier, async (req, res) => {
+  try {
+    const username = req.params.id;
+    if (!username) {
+      return res.status(400).send({ message: "username is required" });
+    }
+    let users = await User.findOne({ username: { $regex: username, $options: 'i' } });
+    if (users) {
+      return res.status(200).send(users);
+    } else {
+      return res.status(404).send({ message: "no users found" });
+    }
+  } catch (error) {
+    console.error(error); 
+    res.status(500).send({ message: "internal error" });
+  }
+});
+
 //delete a user from the db given its id
 APIRouter.delete('',tokenVerifier, async (req,res) => {
   try{
