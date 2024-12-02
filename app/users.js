@@ -141,6 +141,7 @@ APIRouter.delete('',tokenVerifier, async (req,res) => {
 //replace user info
 APIRouter.put('', tokenVerifier,
   check("username")
+    .optional()
     .notEmpty()
     .withMessage("username is empty")
     .isLength({min: 3})
@@ -148,6 +149,7 @@ APIRouter.put('', tokenVerifier,
     .isAlphanumeric()
     .withMessage("username must contain only letters and numbers"),
   check("email")
+    .optional()
     .notEmpty()
     .withMessage("email is empty")
     .isEmail()
