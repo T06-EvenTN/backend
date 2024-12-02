@@ -42,6 +42,16 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
     if (isNaN(Date.parse(req.body.eventStart))) {
       return res.status(400).send({ message: "invalid event start date." });
     }
+    const eventStartDate = new Date(req.body.eventStart); // convert to date
+    const eventEndDate = new Date(req.body.eventLength);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // remove hours, then compare
+    if (eventStartDate < today) {
+      return res.status(400).send({ message: "event start date cannot be in the past." });
+    }
+    if (eventEndDate < eventStartDate) {
+      return res.status(400).send({ message: "event start date cannot be before event end date." });
+    }
     if (!eventTags.includes(req.body.eventTag)) {
       return res.status(400).send({
         message: `invalid tag. Must be one of: ${eventTags.join(', ')}.`
