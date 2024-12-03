@@ -178,7 +178,7 @@ APIRouter.put('', tokenVerifier,
     res.status(500).send({message: `internal error: ${error}`});
   }
 });
-//replace user password       TODO: add password confirmation/mail notification. TODO: add timer to wait before changing password again
+//replace user password       TODO: add mail notification. TODO: add timer to wait before changing password again
 APIRouter.put('/password', tokenVerifier,
   check("oldPassword")
     .notEmpty()
@@ -186,6 +186,16 @@ APIRouter.put('/password', tokenVerifier,
   check("password", 'the password must contain 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol')
     .notEmpty()
     .isStrongPassword(),
+  check("passwordConfirmation")
+    .notEmpty()
+    .withMessage("password confirmation is empty")
+    .bail()
+    .custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("new passwords do not match");
+      }
+      return true;
+    }),
   Validate,
   async (req,res) => {
   try{
