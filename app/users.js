@@ -19,7 +19,7 @@ APIRouter.get('/all', async (req,res) => {
     }
 })
 //create a new user
-APIRouter.post('/register',check("email")
+APIRouter.post('/registration',check("email")
     .isEmpty()
     .withMessage("email is empty")
     .isEmail()
@@ -185,6 +185,8 @@ APIRouter.put('/password', tokenVerifier,
     .withMessage("old password is empty"),
   check("password", 'the password must contain 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol')
     .notEmpty()
+    .withMessage("password is empty")
+    .bail()
     .isStrongPassword(),
   check("passwordConfirmation")
     .notEmpty()
@@ -204,10 +206,12 @@ APIRouter.put('/password', tokenVerifier,
       const user = await User.findById(_id);
       if(user){
         if (await bcrypt.compare(req.body.oldPassword, user.password)) {
-          const hashedPswd = await bcrypt.hash(req.body.password, 10);
-          await User.findByIdAndUpdate(_id, {
-            "password": hashedPswd,
-          });
+          if (!req.body.oldPassword === req.body.password) {
+            const hashedPswd = await bcrypt.hash(req.body.password, 10);
+            await User.findByIdAndUpdate(_id, {
+              "password": hashedPswd,
+            });
+          } else res.status(400).send({message: "new password is the same as the old one"});
           res.status(200).send(`password updated for user ${_id}`);
         } else res.status(401).send({message: "old password is incorrect"});
       } else res.status(404).send({message: "user not found"});
