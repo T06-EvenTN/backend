@@ -10,7 +10,6 @@ function Validate(req, res, next) {
             }
             error[err.param].push(err.msg);
         });
-        console.log(error);
         return res.status(422).json({ error });
     }
     next();
