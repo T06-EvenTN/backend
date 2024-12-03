@@ -80,6 +80,7 @@ APIRouter.post('/login',
   check("username")
     .notEmpty()
     .withMessage("username is empty")
+    .bail()
     .isAlphanumeric()
     .withMessage("username must contain only letters and numbers"),
   check("password")
@@ -144,6 +145,7 @@ APIRouter.put('', tokenVerifier,
     .optional()
     .notEmpty()
     .withMessage("username is empty")
+    .bail()
     .isLength({min: 3})
     .withMessage("username must be at least 3 characters long")
     .isAlphanumeric()
@@ -152,6 +154,7 @@ APIRouter.put('', tokenVerifier,
     .optional()
     .notEmpty()
     .withMessage("email is empty")
+    .bail()
     .isEmail()
     .withMessage("Enter a valid email address")
     .normalizeEmail(),
@@ -169,6 +172,34 @@ APIRouter.put('', tokenVerifier,
           "email": newEmail,
         });
         res.status(200).send(`updated  user ${_id}`);
+      } else res.status(404).send({message: "user not found"});
+    } else res.status(400).send({message: "invalid ID"});
+  } catch (error) {
+    res.status(500).send({message: `internal error: ${error}`});
+  }
+});
+//replace user password       TODO: add password confirmation/mail notification. TODO: add timer to wait before changing password again
+APIRouter.put('/password', tokenVerifier,
+  check("oldPassword")
+    .notEmpty()
+    .withMessage("old password is empty"),
+  check("password", 'the password must contain 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol')
+    .notEmpty()
+    .isStrongPassword(),
+  Validate,
+  async (req,res) => {
+  try{
+    const { _id } = req.user;
+    if(mongoose.isValidObjectId(_id)){
+      const user = await User.findById(_id);
+      if(user){
+        if (await bcrypt.compare(req.body.oldPassword, user.password)) {
+          const hashedPswd = await bcrypt.hash(req.body.password, 10);
+          await User.findByIdAndUpdate(_id, {
+            "password": hashedPswd,
+          });
+          res.status(200).send(`password updated for user ${_id}`);
+        } else res.status(401).send({message: "old password is incorrect"});
       } else res.status(404).send({message: "user not found"});
     } else res.status(400).send({message: "invalid ID"});
   } catch (error) {
