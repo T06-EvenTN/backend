@@ -3,7 +3,7 @@ const APIRouter = express.Router();
 const Event = require("./models/event");
 const User = require("./models/user");
 const mongoose = require("mongoose");
-const tokenVerifier = require("./tokenVerifier");
+const tokenVerifier = require("./middleware/tokenVerifier");
 
 const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
 
