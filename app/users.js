@@ -20,8 +20,6 @@ APIRouter.get('/all', async (req,res) => {
 })
 //create a new user
 APIRouter.post('/registration',check("email")
-    .isEmpty()
-    .withMessage("email is empty")
     .isEmail()
     .withMessage("Enter a valid email address")
     .normalizeEmail(),
