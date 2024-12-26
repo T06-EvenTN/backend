@@ -75,36 +75,53 @@ APIRouter.post('/registration',check("email")
   //TODO: handle incorrect requests (400)
 });
 
-//login with username and password
+// login with email or username and password
 APIRouter.post('/login',
-  check("username")
+  check("usernameOrEmail")
     .notEmpty()
-    .withMessage("username is empty")
+    .withMessage("username or email is empty")
     .bail()
-    .isAlphanumeric()
-    .withMessage("username must contain only letters and numbers"),
+    .custom(value => {
+      if (!/\S+@\S+\.\S+/.test(value) && !/^[a-zA-Z0-9]+$/.test(value)) {
+        throw new Error('username or email must be a valid email or alphanumeric');
+      }
+      return true;
+    }),
   check("password")
     .notEmpty()
     .withMessage("password is empty"),
   Validate,
-  async (req,res) => {
-  try{
-    const user = await User.findOne({username: req.body.username});
-    if(user === null){
-      res.status(404).send({message: `no user found with username ${req.body.username}`});
-    } else {
-      if(await bcrypt.compare(req.body.password, user.password)){
-        const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
-        res.cookie('token', accessToken);
-        res.status(200).send({message: `logged in as ${req.body.username}`, id: user._id});
+  async (req, res) => {
+    try {
+      
+      const { usernameOrEmail, password } = req.body;
+
+      // Cerca utente da email o username
+      const user = await User.findOne({
+        $or: [
+          { username: usernameOrEmail },
+          { email: usernameOrEmail }
+        ]
+      });
+
+      if (!user) {
+        return res.status(404).send({ message: `No user found with username or email ${usernameOrEmail}` });
       } else {
-        res.status(401).send({message: "password is incorrect."});
+        // check per il match della password
+        if (await bcrypt.compare(password, user.password)) {
+          const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
+          res.cookie('token', accessToken);
+          res.status(200).send({ message: `Logged in as ${user.username}`, id: user._id });
+        } else {
+          res.status(401).send({ message: "Password is incorrect." });
+        }
       }
+    } catch (error) {
+      res.status(500).send({ message: error.toString() });
     }
-  }catch(error){
-    res.status(500).send({message: error.toString()});
   }
-})
+);
+
 
 //get a user from its id
 APIRouter.get('/info', tokenVerifier, async (req,res) => {
