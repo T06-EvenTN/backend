@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --env-file .env app"
+    "prod": "node app"
   },
   "keywords": [],
   "author": "",
