@@ -96,7 +96,7 @@ APIRouter.post('/login',
       if(await bcrypt.compare(req.body.password, user.password)){
         const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
         res.cookie('token', accessToken);
-        res.status(200).send({message: `logged in as ${req.body.username}`});
+        res.status(200).send({message: `logged in as ${req.body.username}`, id: user._id});
       } else {
         res.status(401).send({message: "password is incorrect."});
       }
