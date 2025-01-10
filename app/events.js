@@ -4,6 +4,8 @@ const Event = require("./models/event");
 const User = require("./models/user");
 const mongoose = require("mongoose");
 const tokenVerifier = require("./middleware/tokenVerifier");
+const upload = require('./middleware/upload');
+const cloudinary = require('./middleware/cloudinaryConfig');
 
 const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
 
@@ -34,8 +36,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
         .send({ message: "Missing or invalid parameters." });
     }
     if (
-      typeof req.body.xcoord !== "number" ||
-      typeof req.body.ycoord !== "number"
+        typeof req.body.xcoord !== "number" ||
+        typeof req.body.ycoord !== "number"
     ) {
       return res.status(400).send({ message: "coordinates must be numbers." });
     }
@@ -59,6 +61,7 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
     }
     let event = new Event({
       eventName: req.body.eventName,
+      eventImage: req.body.eventImage,
       eventStart: req.body.eventStart,
       eventLength: req.body.eventLength,
       eventDescription: req.body.eventDescription,
@@ -68,12 +71,44 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       eventCreatedBy: req.user._id
     });
     event = await event.save();
+
     let eventid = event.id;
     return res.status(201).send(`created event ${eventid}`);
   } catch (error) {
     res.status(500).send({ message: "internal error." });
   }
 });
+
+APIRouter.post("/image", tokenVerifier, upload.single('eventImage'), async(req, res) => {
+    const eventId = req.body.eventId;
+    //arrow function to make code more readable
+    const eventMatchesCreator = (event) => event.eventCreatedBy == req.user._id;
+
+    if(req.file){
+        //verifies supplied event actually exists
+        let event = await Event.findById(eventId);
+        if(event){
+            if(eventMatchesCreator(event)){
+                //uploads image to the remote image hosting service
+                const result = await cloudinary.uploader.upload(req.file.path, function(err,result){
+                    if(err){
+                        //cludinary internal handler
+                        console.log(`upload error for event ${eventId}`);
+                        console.log(err);
+                        res.status(500).send({message: err})
+                    } 
+                });
+                //new remote URL for the image
+                const remoteUrl = result.secure_url;
+                //put new URL in the eventImage field of the event in the database
+                await Event.findByIdAndUpdate(eventId, {eventImage: remoteUrl});
+                res.status(200).send({message: "image uploaded succesfully", path: remoteUrl});
+
+            } else res.status(403).send({message: "user is not the event creator"});
+        } else res.status(404).send({message: "supplied eventId has no corresponding event"})
+    } else res.status(400).send({message: "no files uploaded"});
+    
+})
 
 // returns one event
 APIRouter.get("/info/:id", async (req, res) => {

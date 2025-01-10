@@ -5,6 +5,7 @@ const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
 
 module.exports = mongoose.model('Event', new Schema({
   eventName: String,
+  eventImage: String,
   eventStart: Date,
   eventLength: Date,
   eventDescription: String,
