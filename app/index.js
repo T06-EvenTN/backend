@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const users = require('./users.js');
 const events = require('./events.js');
+const friends = require('./friends.js');
 
 const app = express();
 const PORT = process.env.PORT;
@@ -36,5 +37,6 @@ app.get(`/test`, (req,res) => {
 
 app.use('/users', users);
 app.use('/events', events);
+app.use('/friends',friends);
 
 module.exports = app;
