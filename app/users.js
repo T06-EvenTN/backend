@@ -58,7 +58,7 @@ APIRouter.get('/events', tokenVerifier, async (req, res) => {
             //if a user create an account, get the token and than delete the account the token is still legit for about 24 hours
             const user = await User.findOne({ _id: req.user._id });
             if (user) {
-                const userEventList = req.user.events;
+                const userEventList = user.events;
                 res.status(200).send(userEventList);
             } else {
                 res.status(404).send({ message: "no user found" });
@@ -89,8 +89,41 @@ APIRouter.post('/events/:id', tokenVerifier, async (req, res) => {
                     return res.status(400).send({ message: "Event is already added to this user." });
                 } else {
                     userEventList.push(newEvent);
-                    await User.findByIdAndUpdate(req.user, { events: userEventList });
+                    await User.findByIdAndUpdate(req.user._id, { events: userEventList });
                     res.status(201).send(`added event ${newEvent} to the events of ${req.user.username}`);
+                }
+            } else res.status(404).send({ message: "event not found" });
+        } else res.status(400).send({ message: "supplied user or event ID is not valid" })
+
+    } catch (error) {
+        res.status(500).send({ message: error });
+    }
+});
+
+//remove event from a user
+APIRouter.delete('/events/:id', tokenVerifier, async (req, res) => {
+    try {
+        const oldEvent = req.params.id;
+        if (!oldEvent) {
+            return res.status(400).send({ message: "Event ID is not present." })
+        }
+        if (mongoose.isValidObjectId(oldEvent) && mongoose.isValidObjectId(req.user._id)) {
+            let user = await User.findOne({ _id: req.user._id });
+            if (!user) {
+                return res.status(404).send({ message: "User not found." });
+            }
+            let event = await Event.findById(oldEvent);
+            //avoid adding same event multiple time, safety check.
+            if (event) {
+                let userEventList = user.events;
+                if (!userEventList.includes(oldEvent)) {
+                    return res.status(400).send({ message: "Event hasn't been added to this user." });
+                } else {
+                    userEventList = userEventList.filter(function(item) {
+                        return item !== req.params.id
+                    });
+                    await User.findByIdAndUpdate(req.user._id, { events: userEventList });
+                    res.status(201).send(`removed event ${oldEvent} to the events of ${req.user.username}`);
                 }
             } else res.status(404).send({ message: "event not found" });
         } else res.status(400).send({ message: "supplied user or event ID is not valid" })

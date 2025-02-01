@@ -216,8 +216,13 @@ APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
           await Event.findByIdAndUpdate(id, {
             eventPresence: validReq.eventPresence+1
           });
-          res.status(200).send(`updated event ${id}`);
-        } else res.status(400).send({message: "the event has already been added to the list"})
+          res.status(200).send(`increased attendance for event ${id}`);
+        } else {
+            await Event.findByIdAndUpdate(id, {
+                eventPresence: validReq.eventPresence-1
+            });
+            res.status(200).send(`decreased attendance for event ${id}`);
+        }
       } else res.status(404).send({ message: "event not found" });
     } else res.status(400).send({ message: "user ID or event ID is not valid" });
   } catch (error) {
