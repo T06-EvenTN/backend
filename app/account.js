@@ -110,6 +110,22 @@ APIRouter.post('/login',
     }
 );
 
+//delete a user from the db given its id
+APIRouter.delete('', tokenVerifier, async (req, res) => {
+    try {
+        const { _id } = req.user;
+        if (mongoose.isValidObjectId(_id)) {
+            const user = await User.findById(_id);
+            if (user) {
+                await User.findByIdAndDelete(_id);
+                res.status(200).send(`deleted user ${_id}`);
+            } else res.status(404).send({ message: "user not found" });
+        } else res.status(400).send({ message: "invalid ID" });
+    } catch (error) {
+        res.status(500).send({ message: `internal error: ${error}` });
+    }
+});
+
 //replace user info
 APIRouter.put('', tokenVerifier,
     check("username")
