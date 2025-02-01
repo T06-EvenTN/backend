@@ -1,14 +1,14 @@
 openapi: '3.0.3'
 info:
   title: EventAPI
-  version: 1.0.1
+  version: 1.1.0
   description: 'API for EvenTN, the open source event application for the city of Trento'
 servers:
   - description: Live Render Hosting
     url: https://eventn-backend.onrender.com
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.0.1
+    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.1.0
   - description: Locally hosted backend server
     url: http://localhost:8080
 paths:
@@ -24,7 +24,7 @@ paths:
               schema:
                 type: string
                 example: yay!
-  /users/registration:
+  /account/registration:
     post:
       tags: [Account]
       summary: Add a new user
@@ -71,7 +71,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users:
+  /account:
     delete:
       tags: [Account] 
       summary: Delete a logged in user permanently
@@ -149,7 +149,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/password:
+  /account/password:
     put:
       tags: [Account] 
       summary: Update user password
@@ -215,7 +215,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/login:
+  /account/login:
     post:
       tags: [Account] 
       summary: Login via credentials
@@ -335,7 +335,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/friends:
+  /friends:
     get:
       tags: [Friends] 
       summary: Get all friends
@@ -373,7 +373,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/friends/{friendId}:
+  /friends/{friendId}:
     parameters:
           - name: friendId
             in: path
