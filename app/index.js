@@ -7,7 +7,7 @@ const account = require('./account.js');
 const users = require('./users.js');
 const events = require('./events.js');
 const friends = require('./friends.js');
-
+const eventCode = require('./eventCodes.js');
 const app = express();
 const PORT = process.env.PORT;
 
@@ -20,6 +20,7 @@ app.use(cors());
 
 // mongoose connection
 const mongoose = require('mongoose');
+//const eventCode = require('./models/codeEvent.js');
 const uri = process.env.DATABASE_URL;
 
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
@@ -40,5 +41,6 @@ app.use('/account', account);
 app.use('/users', users);
 app.use('/events', events);
 app.use('/friends',friends);
+app.use('/eventCodes', eventCode);
 
 module.exports = app;
