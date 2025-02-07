@@ -7,7 +7,7 @@ const tokenVerifier = require('./middleware/tokenVerifier');
 
 //get all users in users db
 APIRouter.get('/all', async (req, res) => {
-    let users = await User.find().exec();
+    let users = await User.find({}).select('-password').exec();
     if (users) {
         res.status(200).send(users);
     } else {
@@ -33,9 +33,9 @@ APIRouter.get('/info', tokenVerifier, async (req, res) => {
 });
 
 // search a user with the username, exact match
-APIRouter.get('/search/:id', tokenVerifier, async (req, res) => {
+APIRouter.get('/search/:name', tokenVerifier, async (req, res) => {
     try {
-        const username = req.params.id;
+        const username = req.params.name;
         if (!username) {
             return res.status(400).send({ message: "username is required" });
         }
