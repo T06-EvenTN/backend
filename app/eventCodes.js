@@ -59,4 +59,22 @@ APIRouter.post('/create-code', tokenVerifier, async (req, res) => {
     }
 });
 
+//makes it so that the code is no longer available
+APIRouter.post('/invalidate-code', tokenVerifier, async (req, res) => {
+    try {
+        console.log(req.body.code);
+        const codice = req.body.code;
+        const event = req.body.eventId;
+        if(codice !== null){
+            if (event !== null){
+                await eventCode.findOneAndUpdate({code: codice},{isValid: false, eventID: event});
+                return res.status(200).send({message: `code ${codice} has been associated to event ${event}`});
+            } else return res.status(404).send({message: "could not find event"});
+        } else return res.status(404).send({message: "could not find event code"});
+    } catch (error) {
+        console.error("Error occurred:", error);  
+        res.status(500).send({ message: "Internal server error", error: error.message });
+    }
+})
+
 module.exports = APIRouter;
