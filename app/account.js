@@ -49,6 +49,8 @@ APIRouter.post('/registration', check("email")
             const hashedPswd = await bcrypt.hash(req.body.password, 10);
             let user = new User({
                 "username": req.body.username,
+                "name": req.body.name,
+                "surname": req.body.surname,
                 "email": req.body.email,
                 "password": hashedPswd,
                 friends: [],
@@ -151,12 +153,16 @@ APIRouter.put('', tokenVerifier,
             const { _id } = req.user;
             if (mongoose.isValidObjectId(_id)) {
                 const user = await User.findById(_id);
-                if (user) { //TODO: add name and surname?
+                if (user) { 
                     const newUser = req.body.username ?? user.username;
+                    const newName = req.body.name ?? user.name;
+                    const newSurname = req.body.surname ?? user.surname;
                     const newEmail = req.body.email ?? user.email;
                     await User.findByIdAndUpdate(_id, {
                         "username": newUser,
                         "email": newEmail,
+                        "name": newName,
+                        "surname": newSurname
                     });
                     res.status(200).send(`updated  user ${_id}`);
                 } else res.status(404).send({ message: "user not found" });
