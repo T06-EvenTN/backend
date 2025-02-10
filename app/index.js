@@ -1,13 +1,13 @@
 //API requirements
-const express = require('express');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
+const express = require("express");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
 
-const account = require('./account.js');
-const users = require('./users.js');
-const events = require('./events.js');
-const friends = require('./friends.js');
-const eventCode = require('./eventCodes.js');
+const account = require("./account.js");
+const users = require("./users.js");
+const events = require("./events.js");
+const friends = require("./friends.js");
+const eventCode = require("./eventCodes.js");
 const app = express();
 const PORT = process.env.PORT;
 
@@ -17,30 +17,31 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
 
-
 // mongoose connection
-const mongoose = require('mongoose');
-//const eventCode = require('./models/codeEvent.js');
+const mongoose = require("mongoose");
 const uri = process.env.DATABASE_URL;
 
-const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
-mongoose.connect(uri, clientOptions).then(()=> {console.log('DB connected')});
+const clientOptions = {
+    serverApi: { version: "1", strict: true, deprecationErrors: true },
+};
+mongoose.connect(uri, clientOptions).then(() => {
+    console.log("DB connected");
+});
 
 //open HTTP connection on PORT
-app.listen(
-  PORT,
-  () => console.log(`application started on http://localhost:${PORT}`)
+app.listen(PORT, () =>
+    console.log(`application started on http://localhost:${PORT}`)
 );
 
 //request routing
-app.get(`/test`, (req,res) => {
-  res.status(200).send("yay!");
-})
+app.get(`/test`, (req, res) => {
+    res.status(200).send("yay!");
+});
 
-app.use('/account', account);
-app.use('/users', users);
-app.use('/events', events);
-app.use('/friends',friends);
-app.use('/eventCodes', eventCode);
+app.use("/account", account);
+app.use("/users", users);
+app.use("/events", events);
+app.use("/friends", friends);
+app.use("/eventCodes", eventCode);
 
 module.exports = app;

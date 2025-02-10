@@ -4,13 +4,13 @@ const Event = require("./models/event");
 const User = require("./models/user");
 const mongoose = require("mongoose");
 const tokenVerifier = require("./middleware/tokenVerifier");
-const upload = require('./middleware/upload');
-const cloudinary = require('./middleware/cloudinaryConfig');
+const upload = require("./middleware/upload");
+const cloudinary = require("./middleware/cloudinaryConfig");
 
-const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
+const eventTags = ["Musica", "Festival", "Sport", "Conferenza", "Sagra"];
 
 // returns all events
-APIRouter.get('/all', async (req, res) => {
+APIRouter.get("/all", async (req, res) => {
   try {
     let events = await Event.find().exec();
     if (events && events.length > 0) {
@@ -36,8 +36,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
         .send({ message: "Missing or invalid parameters." });
     }
     if (
-        typeof req.body.xcoord !== "number" ||
-        typeof req.body.ycoord !== "number"
+      typeof req.body.xcoord !== "number" ||
+      typeof req.body.ycoord !== "number"
     ) {
       return res.status(400).send({ message: "coordinates must be numbers." });
     }
@@ -49,14 +49,18 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // remove hours, then compare
     if (eventStartDate < today) {
-      return res.status(400).send({ message: "event start date cannot be in the past." });
+      return res
+        .status(400)
+        .send({ message: "event start date cannot be in the past." });
     }
     if (eventEndDate < eventStartDate) {
-      return res.status(400).send({ message: "event start date cannot be before event end date." });
+      return res
+        .status(400)
+        .send({ message: "event start date cannot be before event end date." });
     }
     if (!eventTags.includes(req.body.eventTag)) {
       return res.status(400).send({
-        message: `invalid tag. Must be one of: ${eventTags.join(', ')}.`
+        message: `invalid tag. Must be one of: ${eventTags.join(", ")}.`,
       });
     }
     let event = new Event({
@@ -68,47 +72,67 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
       eventPosition: [req.body.xcoord, req.body.ycoord],
       eventPresence: 0,
       eventTag: req.body.eventTag,
-      eventCreatedBy: req.user._id
+      eventCreatedBy: req.user._id,
     });
     event = await event.save();
 
     let eventid = event.id;
-    return res.status(201).send(`created event ${eventid}`);
+    return res
+      .status(201)
+      .send({ message: `succesfully created event!`, eventId: eventid });
   } catch (error) {
     res.status(500).send({ message: "internal error." });
   }
 });
 
-APIRouter.post("/image", tokenVerifier, upload.single('eventImage'), async(req, res) => {
-    const eventId = req.body.eventId;
-    //arrow function to make code more readable
-    const eventMatchesCreator = (event) => event.eventCreatedBy == req.user._id;
+APIRouter.post(
+  "/image",
+  tokenVerifier,
+  upload.single("eventImage"),
+  async (req, res) => {
+    try {
+      const eventId = req.body.eventId;
+      //arrow function to make code more readable
+      const eventMatchesCreator = (event) =>
+        event.eventCreatedBy == req.user._id;
 
-    if(req.file){
+      if (req.file) {
         //verifies supplied event actually exists
         let event = await Event.findById(eventId);
-        if(event){
-            if(eventMatchesCreator(event)){
-                //uploads image to the remote image hosting service
-                const result = await cloudinary.uploader.upload(req.file.path, function(err,result){
-                    if(err){
-                        //cludinary internal handler
-                        console.log(`upload error for event ${eventId}`);
-                        console.log(err);
-                        res.status(500).send({message: err})
-                    } 
-                });
-                //new remote URL for the image
-                const remoteUrl = result.secure_url;
-                //put new URL in the eventImage field of the event in the database
-                await Event.findByIdAndUpdate(eventId, {eventImage: remoteUrl});
-                res.status(200).send({message: "image uploaded succesfully", path: remoteUrl});
-
-            } else res.status(403).send({message: "user is not the event creator"});
-        } else res.status(404).send({message: "supplied eventId has no corresponding event"})
-    } else res.status(400).send({message: "no files uploaded"});
-    
-})
+        if (event) {
+          if (eventMatchesCreator(event)) {
+            //uploads image to the remote image hosting service
+            const result = await cloudinary.uploader.upload(
+              req.file.path,
+              function (err, result) {
+                if (err) {
+                  //cludinary internal handler
+                  console.log(`upload error for event ${eventId}`);
+                  console.log(err);
+                  res.status(500).send({ message: err });
+                }
+              }
+            );
+            //new remote URL for the image
+            const remoteUrl = result.secure_url;
+            //put new URL in the eventImage field of the event in the database
+            await Event.findByIdAndUpdate(eventId, { eventImage: remoteUrl });
+            res
+              .status(200)
+              .send({ message: "image uploaded succesfully", path: remoteUrl });
+          } else
+            res.status(403).send({ message: "user is not the event creator" });
+        } else
+          res
+            .status(404)
+            .send({ message: "supplied eventId has no corresponding event" });
+      } else res.status(400).send({ message: "no files uploaded" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: "internal server error", error: error });
+    }
+  }
+);
 
 // returns one event
 APIRouter.get("/info/:id", async (req, res) => {
@@ -134,26 +158,34 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
       if (validReq) {
-        if(!(req.user._id == validReq.eventCreatedBy)) {
-          return res.status(400).send({ message: "User is not the same that created the event." });
+        if (!(req.user._id == validReq.eventCreatedBy)) {
+          return res
+            .status(400)
+            .send({ message: "User is not the same that created the event." });
         }
         if (
           req.body.eventName !== undefined &&
-          (typeof req.body.eventName !== "string")
+          typeof req.body.eventName !== "string"
         ) {
           return res.status(400).send({ message: "Name must be a string." });
         }
         if (
           req.body.eventDescription !== undefined &&
-          (typeof req.body.eventDescription !== "string")
+          typeof req.body.eventDescription !== "string"
         ) {
-          return res.status(400).send({ message: "Description must be a string." });
+          return res
+            .status(400)
+            .send({ message: "Description must be a string." });
         }
         if (
-          req.body.xcoord !== undefined && req.body.ycoord !== undefined &&
-          (typeof req.body.xcoord !== "number" || typeof req.body.ycoord !== "number")
+          req.body.xcoord !== undefined &&
+          req.body.ycoord !== undefined &&
+          (typeof req.body.xcoord !== "number" ||
+            typeof req.body.ycoord !== "number")
         ) {
-          return res.status(400).send({ message: "Coordinates must be numbers." });
+          return res
+            .status(400)
+            .send({ message: "Coordinates must be numbers." });
         }
 
         // Check if event start date is valid (only if provided)
@@ -164,7 +196,7 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
         // Check if eventTag is valid (only if provided)
         if (req.body.eventTag && !eventTags.includes(req.body.eventTag)) {
           return res.status(400).send({
-            message: `Invalid tag. Must be one of: ${eventTags.join(', ')}.`
+            message: `Invalid tag. Must be one of: ${eventTags.join(", ")}.`,
           });
         }
         const newEventName = req.body.eventName ?? validReq.eventName;
@@ -173,11 +205,15 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
         const newEventDescription =
           req.body.eventDescription ?? validReq.eventDescription;
 
-        let newEventPosition = validReq.eventPosition; 
+        let newEventPosition = validReq.eventPosition;
         if (req.body.xcoord !== undefined || req.body.ycoord !== undefined) {
           newEventPosition = [
-            req.body.xcoord !== undefined ? req.body.xcoord : validReq.eventPosition[0],
-            req.body.ycoord !== undefined ? req.body.ycoord : validReq.eventPosition[1] 
+            req.body.xcoord !== undefined
+              ? req.body.xcoord
+              : validReq.eventPosition[0],
+            req.body.ycoord !== undefined
+              ? req.body.ycoord
+              : validReq.eventPosition[1],
           ];
         }
 
@@ -199,46 +235,52 @@ APIRouter.put("/:id", tokenVerifier, async (req, res) => {
 });
 
 // presence counter gets increased by one
-APIRouter.patch("/counter/:id", tokenVerifier, async (req,res) =>{
+APIRouter.patch("/counter/:id", tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
-    if(!id){
-      return res.status(400).send({message: "Event ID is not present."})
+    if (!id) {
+      return res.status(400).send({ message: "Event ID is not present." });
     }
-    if (mongoose.isValidObjectId(id)&&mongoose.isValidObjectId(req.user._id)) {
-      let user = await User.findOne({_id:req.user._id});
+    if (
+      mongoose.isValidObjectId(id) &&
+      mongoose.isValidObjectId(req.user._id)
+    ) {
+      let user = await User.findOne({ _id: req.user._id });
       if (!user) {
         return res.status(404).send({ message: "User not found." });
       }
       const validReq = await Event.findById(id);
       if (validReq) {
-        if(!user.events.includes(id)){
+        if (!user.events.includes(id)) {
           await Event.findByIdAndUpdate(id, {
-            eventPresence: validReq.eventPresence+1
+            eventPresence: validReq.eventPresence + 1,
           });
           res.status(200).send(`increased attendance for event ${id}`);
         } else {
-            await Event.findByIdAndUpdate(id, {
-                eventPresence: validReq.eventPresence-1
-            });
-            res.status(200).send(`decreased attendance for event ${id}`);
+          await Event.findByIdAndUpdate(id, {
+            eventPresence: validReq.eventPresence - 1,
+          });
+          res.status(200).send(`decreased attendance for event ${id}`);
         }
       } else res.status(404).send({ message: "event not found" });
-    } else res.status(400).send({ message: "user ID or event ID is not valid" });
+    } else
+      res.status(400).send({ message: "user ID or event ID is not valid" });
   } catch (error) {
     res.status(500).send({ message: `internal error: ${error}` });
   }
-})
+});
 
 // deletes event, only event creator can do so
-APIRouter.delete("/:id",tokenVerifier, async (req, res) => {
+APIRouter.delete("/:id", tokenVerifier, async (req, res) => {
   try {
     const { id } = req.params;
     if (mongoose.isValidObjectId(id)) {
       const validReq = await Event.findById(id);
       if (validReq) {
-        if(!(req.user._id == validReq.eventCreatedBy)) {
-          return res.status(400).send({ message: "User is not the same that created the event." });
+        if (!(req.user._id == validReq.eventCreatedBy)) {
+          return res
+            .status(400)
+            .send({ message: "User is not the same that created the event." });
         }
         await Event.findByIdAndDelete(id);
         res.status(200).send(`deleted event ${id}`);
