@@ -21,7 +21,7 @@ APIRouter.get('', tokenVerifier, async (req, res) => {
         res.status(500).send({ message: "internal error" });
     }
 });
-  
+
 //add friend to a user
 APIRouter.post('/:id', tokenVerifier, async (req, res) => {
     try {

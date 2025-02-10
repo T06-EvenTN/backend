@@ -35,13 +35,15 @@ APIRouter.post('/validate-code', tokenVerifier, async (req, res) => {
 //create a new eventcode
 APIRouter.post('/create-code', tokenVerifier, async (req, res) => {
     try {
-        const nuovoCodice = Math.random().toString(36).slice(2)
-        const existingCode = await eventCode.findOne({ code: nuovoCodice });
-        while(!existingCode) {
+        let nuovoCodice = Math.random().toString(36).slice(2);
+        let existingCode = await eventCode.findOne({ code: nuovoCodice });
+        console.log(existingCode);
+        while(existingCode) {
             nuovoCodice = Math.random().toString(36).slice(2)
             existingCode = await eventCode.findOne({ code: nuovoCodice });
         }
         
+        console.log("making new code");
         let nuovo = new eventCode({
             "code": nuovoCodice,
         });
@@ -51,7 +53,7 @@ APIRouter.post('/create-code', tokenVerifier, async (req, res) => {
 
         nuovo = await nuovo.save();
         let codeID = nuovo.id;
-        res.status(201).send(`Created code ${codeID} with code ${nuovoCodice}`);
+        res.status(201).send({message: `Created code ${codeID}`, code: nuovoCodice});
 
     } catch (error) { 
         console.error("Error occurred:", error);  

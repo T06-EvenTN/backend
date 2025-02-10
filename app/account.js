@@ -62,7 +62,6 @@ APIRouter.post('/registration', check("email")
         } catch (error) {
             res.status(500).send({ message: error });
         }
-        //TODO: handle incorrect requests (400)
     });
 
 // login with email or username and password
@@ -172,7 +171,7 @@ APIRouter.put('', tokenVerifier,
         }
     });
 
-//replace user password       TODO: add mail notification. TODO: add timer to wait before changing password again
+//replace user password
 APIRouter.put('/password', tokenVerifier,
     check("oldPassword")
         .notEmpty()
