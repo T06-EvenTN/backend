@@ -1,14 +1,14 @@
 openapi: '3.0.3'
 info:
   title: EventAPI
-  version: 1.1.0
+  version: 1.2.0
   description: 'API for EvenTN, the open source event application for the city of Trento'
 servers:
   - description: Live Render Hosting
     url: https://eventn-backend.onrender.com
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.1.0
+    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.2.0
   - description: Locally hosted backend server
     url: http://localhost:8080
 paths:
@@ -39,8 +39,16 @@ paths:
               properties:
                 username:
                   type: string
-                  description: The user name.
+                  description: The nickname the user wants to use
                   example: userName01
+                name:
+                  type: string
+                  description: The user's legal name
+                  example: Mario
+                surname:
+                  type: string
+                  description: The user's legal surname
+                  example: Rossi
                 password: 
                   type: string
                   description: password of the user.
@@ -52,7 +60,7 @@ paths:
               schema:
                 allOf:
                   - $ref: "#/components/schemas/UserID"
-                  - example: abc123def456
+                  - example: created user abc123def456
         '404':
           description: No User Found
           content:
@@ -114,7 +122,7 @@ paths:
     put:
       tags: [Account] 
       summary: Update user info
-      description: Changes the user's username or email address to the ones supplied in the request body. Only works if the user is authenticated.
+      description: Changes the user's username, name, surname or email address to the ones supplied in the request body. Only works if the user is authenticated.
       security: 
         - bearerAuth: []
       requestBody:
@@ -133,6 +141,12 @@ paths:
                 $ref: "#/components/schemas/UserID"
         '400':
           description: Provided ID isn't valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Authentication failed
           content:
             application/json:
               schema:
@@ -252,18 +266,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /users/search/{userId}:
+  /users/search/{name}:
     parameters:
-          - name: userId
+          - name: name
             in: path
             required: true
             schema:
               type: string
-              example: USERID_HERE
+              example: USERNAME_HERE
     get:
       tags: [User] 
       summary: Search a user
-      description: returns the info of the user corresponding to userId.
+      description: returns the info of the user corresponding to the supplied username.
       security: 
         - bearerAuth: []
       responses:
@@ -348,7 +362,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/FriendList"
+                type: array
+                description: the UserID of every friend of the user
+                items:
+                  type: string
+                  example: 123abc456def
         '400':
           description: Invalid User ID
           content:
@@ -431,7 +449,11 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EventList"
+                type: array
+                description: the eventID of every event the user saved
+                items:
+                  type: string
+                  example: 456def789ghi
         '400':
           description: Invalid User ID
           content:
@@ -475,7 +497,9 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EventList"
+                type: string
+                description: the eventID of the event the user saved
+                example: added event 456def789ghi
         '400':
           description: Event is invalid or already present
           content:
@@ -500,7 +524,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-                
+    delete:
+      tags: [User] 
+      summary: removes saved event
+      description: removes the supplied event from the saved events list of a user
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                description: the eventID of the event the user removed
+                example: removed event 456def789ghi
+        '400':
+          description: Event is invalid or not present
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Auth Token Mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No Event or User Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /events:
     post:
       tags: [Events] 
@@ -514,7 +576,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Event"
+              type: object
+              properties:
+                eventName:
+                  type: string
+                eventStart:
+                  type: string
+                eventLength:
+                  type: string
+                eventDescription:
+                  type: string
+                eventTag:
+                  type: string
+                xcoord:
+                  type: number
+                ycoord:
+                  type: number
       responses:
         '201':
           description: OK
@@ -530,7 +607,65 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         '400':
-          description: Event is not formatted correctly
+          description: Event info is not formatted correctly (Bad Request)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /events/image:
+    post:
+      tags: [Events]
+      summary: add image to event
+      description: allows to upload an image to the external content delivery network and bind its url to the event object
+      security: 
+      - bearerAuth: []
+      requestBody:
+        description: the event information
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                eventImage:
+                  type: string
+                  format: binary
+                eventId:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: image uploaded succesfully
+                  path:
+                    type: string
+                    example: https://image.com
+        '400':
+          description: supplied info is not formatted correctly (Bad Request)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Auth token mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: Supplied data does not exist
           content:
             application/json:
               schema:
@@ -552,7 +687,11 @@ paths:
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/EventList"
+                type: array
+                description: the eventID of every event
+                items:
+                  type: string
+                  example: 456def789ghi
         '404':
           description: No Events Found
           content:
@@ -690,8 +829,8 @@ paths:
               example: EVENTID_HERE
     patch:
       tags: [Events] 
-      summary: Increase attendance
-      description: Adds one to the attendance counter of the event that matches the supplied eventId. The user needs to be logged in for this endpoint to work.
+      summary: Change attendance
+      description: Adds or removes one to the attendance counter of the event that matches the supplied eventId. The user needs to be logged in for this endpoint to work.
       security:
       - bearerAuth: []
       responses:
@@ -720,6 +859,111 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /eventCodes/all:
+    get:
+      tags: [Event Codes] 
+      summary: Get all the event codes
+      description: Returns a list of all the event codes that are in the database, both active and not. The active codes can be used to publish a new event.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EventCode"
+  /eventCodes/validate-code:
+    post:
+      tags: [Event Codes] 
+      summary: Validate an event code
+      description: Makes sure that the supplied code is actually valid (as in registered in the database and not used already)
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Code is valid!
+        '400':
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '403':
+          description: Unauthorized request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /eventCodes/create-code:
+    post:
+      tags: [Event Codes] 
+      summary: Create an event code
+      description: Generates a new random event code and supplies it to the database.
+      security:
+      - bearerAuth: []
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: Created code 1a2b3c
+        '403':
+          description: Unauthorized request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /eventCodes/invalidate-code:
+    post:
+      tags: [Event Codes] 
+      summary: Use code for an event
+      description: Sets the isValid flag to false and binds the eventID to the code object
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: string
+                example: code 1a2b3c has been associated to event 123abc456def
+        '403':
+          description: Unauthorized request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     bearerAuth:
@@ -733,72 +977,101 @@ components:
       example: abc123def456
     Login:
       required:
-        - username
+        - usernameOrEmail
         - password
       type: object
       properties:
-        username:
+        usernameOrEmail:
           type: string
-          description: username of the user
+          description: username or email of the user
         password:
           type: string
           description: password in plain text; must contain at least 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol
     User:
       required:
         - id
+        - username
+        - name
+        - surname
         - email
-        - password
+        - friends
+        - events
       type: object
       properties:
         id:
           $ref: "#/components/schemas/UserID"
+        username:
+          type: string
+          description: the user's chosen nickname
+          example: UserName01
+        name:
+          type: string
+          description: the user's legal name
+          example: Mario
+        surname:
+          type: string
+          description: the user's legal surname
+          example: Rossi
         email:
           type: string
           description: email address of the user
           example: address@facsimil.com
+        friends:
+          type: array
+          items:
+            type: string
+          description: array with all the unique identifiers of the user's friends
+        events:
+          type: array
+          items:
+            type: string
+          description: array with all the unique identifiers of the user's saved events
     Event:
       required:
-        - title
-        - startDate
+        - eventName
+        - eventStart
         - eventLength
         - eventDescription
-        - position
-        - tag
+        - eventPosition
+        - eventPresence
+        - eventTag
+        - eventCreatedBy
       type: object
       properties:
-        title:
+        eventName:
           type: string
           description: name of the event
           example: Sample Event
-        startDate:
+        eventImage:
+          type: string
+          description: URL to the image of the event
+          example: https://image.com
+        eventStart:
           type: string
           description: event start date
           example: 2024-12-26T23:15:30.000Z
         eventLength:
-          type: integer
+          type: string
           description: event length (date and time of the end)
           example: 2024-12-27T23:15:30.000Z
         eventDescription:
           type: string
           description: informations about the event
           example: The description of the sample event will be here. 
-        position:
+        eventPosition:
           type: array
           items:
             type: number
           description: main position of the event, given as an array of floats
           example: [46.092996,11.123657]
-        tag:
+        eventPresence:
+          type: integer
+          description: the amount of people that intend to take part to the event
+          example: 15
+        eventTag:
           $ref: "#/components/schemas/Tag"
-            
-    FriendList:
-      type: array
-      items: 
-        $ref: "#/components/schemas/User"
-    EventList:
-      type: array
-      items: 
-        $ref: "#/components/schemas/Event"
+        eventCreatedBy:
+          $ref: "#/components/schemas/UserID"
     Tag:
       type: string
       enum:
@@ -808,6 +1081,23 @@ components:
         - Conferenza
         - Sagra
       description: type of the event
+    EventCode:
+      required:
+        - code
+        - isValid
+      type: object
+      properties:
+        code:
+          type: string
+          description: a unique code generated to allow the publication of an event
+          example: 654fed321cba
+        isValid:
+          type: boolean
+          description: signals wether the code has already been used or not
+        eventID:
+          type: string
+          description: if the code has been used, this is the event that used it
+          example: 456def789ghi
     Error:
       required:
         - message
