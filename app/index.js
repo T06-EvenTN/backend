@@ -8,6 +8,7 @@ const users = require("./users.js");
 const events = require("./events.js");
 const friends = require("./friends.js");
 const eventCode = require("./eventCodes.js");
+const operator = require("./operator.js");
 const app = express();
 const PORT = process.env.PORT;
 
@@ -43,5 +44,6 @@ app.use("/users", users);
 app.use("/events", events);
 app.use("/friends", friends);
 app.use("/eventCodes", eventCode);
+app.use("/oc",operator);
 
 module.exports = app;
