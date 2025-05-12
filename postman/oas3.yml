@@ -1,14 +1,14 @@
 openapi: '3.0.3'
 info:
   title: EventAPI
-  version: 1.2.0
+  version: 1.2.1
   description: 'API for EvenTN, the open source event application for the city of Trento'
 servers:
   - description: Live Render Hosting
     url: https://eventn-backend.onrender.com
   # Added by API Auto Mocking Plugin
   - description: SwaggerHub API Auto Mocking
-    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.2.0
+    url: https://virtserver.swaggerhub.com/DavideDaCol/EventAPI/1.2.1
   - description: Locally hosted backend server
     url: http://localhost:8080
 paths:
@@ -440,7 +440,8 @@ paths:
   /users/events:
     get:
       tags: [User] 
-      summary: returns the events a user has saved
+      summary: Get saved events
+      description: returns the events a user has saved
       security:
       - bearerAuth: []
       responses:
@@ -488,7 +489,8 @@ paths:
               example: EVENTID_HERE
     post:
       tags: [User] 
-      summary: adds the supplied event to a user
+      summary: Save an event
+      description: adds the supplied event to a user
       security:
       - bearerAuth: []
       responses:
@@ -526,7 +528,7 @@ paths:
                 $ref: "#/components/schemas/Error"
     delete:
       tags: [User] 
-      summary: removes saved event
+      summary: Removes saved event
       description: removes the supplied event from the saved events list of a user
       security:
       - bearerAuth: []
@@ -621,7 +623,7 @@ paths:
   /events/image:
     post:
       tags: [Events]
-      summary: add image to event
+      summary: Add image to event
       description: allows to upload an image to the external content delivery network and bind its url to the event object
       security: 
       - bearerAuth: []
@@ -954,6 +956,39 @@ paths:
                 $ref: "#/components/schemas/Error"
         '404':
           description: Resource not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /oc/openData:
+    get:
+      tags: [Operator]
+      summary: Get Open Data
+      description: sends a csv formatted response containing all available data for all events
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            text/csv:
+              schema:
+                type: string
+                example: "<CSV File contents>"
+        '403':
+          description: Unauthorized request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: No events found
           content:
             application/json:
               schema:
