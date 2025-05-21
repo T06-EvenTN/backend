@@ -35,6 +35,11 @@ APIRouter.post('/registration', check("email")
         .withMessage("username must be at least 3 characters long")
         .isAlphanumeric()
         .withMessage("username must contain only letters and numbers"),
+    check("phone")
+        .notEmpty()
+        .withMessage("Phone number is mandatory.")
+        .isMobilePhone()
+        .withMessage("supplied phone number isn't valid"),
     Validate,
     async (req, res) => {
         try { //forse sarebbe da fare delle custom validation per username e email
@@ -52,6 +57,7 @@ APIRouter.post('/registration', check("email")
                 "name": req.body.name,
                 "surname": req.body.surname,
                 "email": req.body.email,
+                "phone": req.body.phone,
                 "password": hashedPswd,
                 friends: [],
                 events: []
