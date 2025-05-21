@@ -41,6 +41,14 @@ paths:
                   type: string
                   description: The nickname the user wants to use
                   example: userName01
+                email:
+                  type: String
+                  description: The user's chosen email address. must be valid
+                  example: mariorossi@gmail.com
+                phone:
+                  type: string
+                  description: A valid phone number. must match the user's locale
+                  example: 1234567890
                 name:
                   type: string
                   description: The user's legal name
