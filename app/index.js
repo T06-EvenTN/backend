@@ -16,7 +16,10 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+}));
 
 // mongoose connection
 const mongoose = require("mongoose");
@@ -31,7 +34,7 @@ mongoose.connect(uri, clientOptions).then(() => {
 
 //open HTTP connection on PORT
 app.listen(PORT, () =>
-    console.log(`application started on http://localhost:${PORT}`)
+    console.log(`application started on port ${PORT}`)
 );
 
 //request routing
