@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra'];
+const eventTags = ['Musica', 'Festival', 'Sport', 'Conferenza', 'Sagra', 'Comune'];
 
 module.exports = mongoose.model('Event', new Schema({
   eventName: String,
