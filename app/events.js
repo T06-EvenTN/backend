@@ -7,7 +7,7 @@ const tokenVerifier = require("./middleware/tokenVerifier");
 const upload = require("./middleware/upload");
 const cloudinary = require("./middleware/cloudinaryConfig");
 
-const eventTags = ["Musica", "Festival", "Sport", "Conferenza", "Sagra"];
+const eventTags = ["Musica", "Festival", "Sport", "Conferenza", "Sagra", "Comune"];
 
 // returns all events
 APIRouter.get("/all", async (req, res) => {
