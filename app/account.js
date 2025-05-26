@@ -60,7 +60,8 @@ APIRouter.post('/registration', check("email")
                 "phone": req.body.phone,
                 "password": hashedPswd,
                 friends: [],
-                events: []
+                events: [],
+                isAdmin: false
             })
             user = await user.save();
             let userid = user.id;

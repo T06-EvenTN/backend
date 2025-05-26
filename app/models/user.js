@@ -10,5 +10,6 @@ module.exports = mongoose.model('User', new Schema({
   phone: String,
   password: String,
   friends: [String],
-  events: [String]
+  events: [String],
+  isAdmin: Boolean
 }, {collection: 'dev-users'}));
