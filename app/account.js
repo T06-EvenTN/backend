@@ -106,7 +106,11 @@ APIRouter.post('/login',
                 // check per il match della password
                 if (await bcrypt.compare(password, user.password)) {
                     const accessToken = jwt.sign(user.toJSON(), process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
-                    res.cookie('token', accessToken);
+                    res.cookie('token', accessToken,  {
+                        httpOnly: true,         // opzionale ma consigliato per sicurezza
+                        secure: true,           // obbligatorio con SameSite=None
+                        sameSite: 'None'        // consente invio cross-site
+                    });
                     res.status(200).send({ message: `Logged in as ${user.username}`, id: user._id });
                 } else {
                     res.status(401).send({ message: "Password is incorrect." });
