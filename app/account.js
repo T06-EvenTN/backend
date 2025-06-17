@@ -12,7 +12,7 @@ const { check } = require('express-validator');
 APIRouter.post('/registration', check("email")
     .isEmail()
     .withMessage("Enter a valid email address")
-    .normalizeEmail(),
+    .customSanitizer(email => email.trim().toLowerCase()),
     // check("first_name")
     //   .not()
     //   .isEmpty()
@@ -96,7 +96,7 @@ APIRouter.post('/login',
             const user = await User.findOne({
                 $or: [
                     { username: usernameOrEmail },
-                    { email: usernameOrEmail }
+                    { email: new RegExp(`^${usernameOrEmail.trim()}$`, 'i') }
                 ]
             });
 
@@ -156,7 +156,7 @@ APIRouter.put('', tokenVerifier,
         .bail()
         .isEmail()
         .withMessage("Enter a valid email address")
-        .normalizeEmail(),
+        .customSanitizer(email => email.trim().toLowerCase()),
     Validate,
     async (req, res) => {
         try {
