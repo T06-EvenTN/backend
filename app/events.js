@@ -48,8 +48,10 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
                 .status(400)
                 .send({ message: "invalid event start date." });
         }
-        const eventStartDate = new Date(req.body.eventStart); // convert to date
-        const eventEndDate = new Date(req.body.eventLength);
+        const startOffset = `${req.body.eventStart}:00+00:00`;
+        const eventStartDate = new Date(startOffset); // convert to date
+        const endOffset = `${req.body.eventLength}:00+00:00`;
+        const eventEndDate = new Date(endOffset);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // remove hours, then compare
         if (eventStartDate < today) {
@@ -75,8 +77,8 @@ APIRouter.post("", tokenVerifier, async (req, res) => {
         let event = new Event({
             eventName: req.body.eventName,
             eventImage: req.body.eventImage,
-            eventStart: req.body.eventStart,
-            eventLength: req.body.eventLength,
+            eventStart: startOffset,
+            eventLength: endOffset,
             eventDescription: req.body.eventDescription,
             eventPosition: [req.body.xcoord, req.body.ycoord],
             eventPresence: 0,
