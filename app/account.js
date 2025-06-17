@@ -210,13 +210,13 @@ APIRouter.put('/password', tokenVerifier,
                 const user = await User.findById(_id);
                 if (user) {
                     if (await bcrypt.compare(req.body.oldPassword, user.password)) {
-                        if (!req.body.oldPassword === req.body.password) {
+                        if (!(req.body.oldPassword === req.body.password)) {
                             const hashedPswd = await bcrypt.hash(req.body.password, 10);
                             await User.findByIdAndUpdate(_id, {
                                 "password": hashedPswd,
                             });
+                            res.status(200).send(`password updated for user ${_id}`);
                         } else res.status(400).send({ message: "new password is the same as the old one" });
-                        res.status(200).send(`password updated for user ${_id}`);
                     } else res.status(401).send({ message: "old password is incorrect" });
                 } else res.status(404).send({ message: "user not found" });
             } else res.status(400).send({ message: "invalid ID" });
