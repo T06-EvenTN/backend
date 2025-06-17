@@ -13,28 +13,26 @@ APIRouter.post('/registration', check("email")
     .isEmail()
     .withMessage("Enter a valid email address")
     .customSanitizer(email => email.trim().toLowerCase()),
-    // check("first_name")
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("You first name is required")
-    //   .trim()
-    //   .escape(),
-    // check("last_name")
-    //   .not()
-    //   .isEmpty()
-    //   .withMessage("You last name is required")
-    //   .trim()
-    //   .escape(),
+     check("name")
+       .notEmpty()
+       .withMessage("Your first name is required")
+       .trim()
+       .escape(),
+     check("surname")
+       .notEmpty()
+       .withMessage("Your last name is required")
+       .trim()
+       .escape(),
     check("password", 'the password must contain 6 characters, 1 lower case letter, 1 upper case letter, 1 number and 1 symbol')
         .notEmpty()
         .isStrongPassword(),
     check("username")
         .notEmpty()
-        .withMessage("username is empty")
+        .withMessage("username is empty ")
         .isLength({ min: 3 })
-        .withMessage("username must be at least 3 characters long")
+        .withMessage("username must be at least 3 characters long ")
         .isAlphanumeric()
-        .withMessage("username must contain only letters and numbers"),
+        .withMessage("username must contain only letters and numbers "),
     check("phone")
         .notEmpty()
         .withMessage("Phone number is mandatory.")
